@@ -1,24 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Dashboard from "./Main/Dashboard";
+import Transactions from "./Main/Transactions";
+import Login from "./Main/Login";
+import Signup from "./Main/Signup";
+import Account from "./Main/Account";
+import Friends from "./Main/Friends";
+import AddFriends from "./Main/addFriends";
+import FriendRequest from "./Main/friendrequest";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+
+        {/* Default route starts at Login */}
+        <Route path="/" element={<Navigate to="/Signup" />} />
+
+        {/* Pages */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/transactions" element={<Transactions />} />
+        <Route path="/account" element={<Account/>} />
+        <Route path="/friends" element={<Friends />} />
+        <Route path="/addfriends" element={<AddFriends />} />
+        <Route path="/friendRequest" element={<FriendRequest />} />
+
+
+      </Routes>
+    </Router>
   );
 }
 

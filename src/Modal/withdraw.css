@@ -1,0 +1,107 @@
+/* Modal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* MAIN MODAL BOX */
+.modal-content {
+  background: #03081b;
+  border: 2px solid #7663b0;
+  border-radius: 30px;
+  padding: 30px;
+  min-width: 360px;
+  max-width: 420px;
+  color: white;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* Title */
+.modal-content h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #A78BFA;
+  font-size: 28px;
+}
+
+/* Progress text row */
+.progress-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #2a2a3d;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a777ff, #e25bff);
+  border-radius: 12px;
+  transition: width 0.7s ease;
+}
+
+/* Input */
+input {
+  width: 100%;
+  height: 45px;
+  border-radius: 12px;
+  border: 1px solid #ffffff;
+  color: #fff;
+  background-color: #1D2141;
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 16px;
+}
+
+/* Buttons container */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+/* Confirm & Cancel buttons */
+.confirm-btn,
+.cancel-btn {
+  flex: 1;
+  padding: 14px 0;
+  background-color: #A78BFA;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: 0.2s;
+}
+
+.cancel-btn {
+  background-color: transparent;
+  border: 2px solid #A78BFA;
+  color: #A78BFA;
+}
+
+.confirm-btn:hover {
+  opacity: 0.9;
+}
+
+.cancel-btn:hover {
+  background-color: #352b52;
+}

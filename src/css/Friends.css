@@ -1,0 +1,121 @@
+.friends-page {
+  min-height: 100%;
+}
+
+.friends-title {
+  color: #a78bfa;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+
+.friends-search {
+  width: 100%;
+  padding: 2px 0px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: #1D2141;
+  margin-bottom: 20px;
+}
+
+.friends-search input::placeholder {
+  color: #7c7f9e;
+}
+
+.friends-scroll {
+  height: calc(100vh - 240px);
+  overflow-y: auto;
+  padding-right: 6px;
+  width: 100%;
+}
+
+.friends-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+
+.friend-card {
+  background: #01041E;
+  border: 1px solid #A78BFA;
+  border-radius: 10px;
+  padding: 25px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+
+
+.friend-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #2a2d4d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.friend-id {
+  font-size: 11px;
+  color: #8b8fc4;
+}
+
+.unfriend-btn {
+  background: none;
+  border: none;
+  color: #8b5cf6;
+  font-size: 12px;
+  cursor: pointer;
+  position: absolute;
+  bottom: 3px;
+  right: 12px;
+
+  
+}
+
+.unfriend-btn:hover {
+  text-decoration: underline;
+}
+
+.friends-scroll::-webkit-scrollbar {
+  width: 8px; 
+}
+
+.friends-scroll::-webkit-scrollbar-track {
+  background: #1f2333; 
+  border-radius: 12px;
+}
+
+.friends-scroll::-webkit-scrollbar-thumb {
+  background-color: #a78bfa; 
+  border-radius: 12px;
+  border: 2px solid #1f2333; 
+}
+
+.friends-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #c4b5fd; 
+}
+
+/* For Firefox */
+.friends-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #000000 #1f233300; 
+}
+

@@ -1,0 +1,349 @@
+.overview-container {
+  display: flex;
+  gap: 45px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 20px 0;
+}
+
+/* Base Card */
+.small-card {
+  width: 52vh;
+  background: #01041E;
+  border: 1px solid rgba(180, 150, 255, 0.25);
+  border-radius: 18px;
+  padding: 24px;
+  position: relative;
+  color: white;
+  box-shadow: 0 0 25px rgba(112, 33, 255, 0.18);
+}
+
+
+/* Purple light corner (only for balance card) */
+.balance-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 120px;
+  height: 80px;
+  background: radial-gradient(circle at bottom right, #9448ff, transparent 70%);
+  border-bottom-right-radius: 18px;
+  opacity: 0.6;
+}
+
+/* Card Heading */
+.small-card h3 {
+  font-size: 25px;
+  font-weight: 600;
+  color: #c9b4ff;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Balance Number */
+.balance-amount {
+  font-size: 40px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 0px;
+}
+.card-number {
+  margin-top: 0px;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.85);
+}
+
+
+/* Monthly Tag */
+.goal-tag {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: #b28aff;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.goal-tag:hover {
+  background-color:#d08aff ;
+  transition: ease-in 0.2s;
+}
+/* Goal Subtitle */
+.goal-sub {
+  text-align: center;
+  font-size: 15px;
+  color: #d7d0ff;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+/* Progress Row */
+.progress-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+  color: #d7cfff;
+}
+
+/* Progress Bar */
+.progress-bar {
+  height: 6px;
+  border-radius: 100px;
+  background: rgba(200, 180, 255, 0.3);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a777ff, #e25bff);
+  border-radius: 100px;
+}
+
+/* Button */
+.goal-btn {
+  margin: 18px auto 0 auto;
+  display: block;
+  width: 150px;
+  background: #b28aff;
+  border: none;
+  padding: 7px 0;
+  color: white;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.goal-btn:hover {
+  background: #c6a5ff;
+}
+.withdraw-btn {
+  margin: 18px auto 0 auto;
+  display: block;
+  width: 150px;
+  background: #01041E;
+  border: 1px solid #A78BFA;
+  padding: 7px 0;
+  color: white;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+.withdraw-btn:hover {
+  background: #32106d25;
+}
+
+
+/* Layout */
+.charts-container {
+  display: flex;
+  gap: 25px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: -20px;
+}
+
+/* Base Chart Card */
+.chart-card {
+  width: 400px;
+  padding: 12px;
+  background: #01041E;
+  border: 1px solid rgba(180, 150, 255, 0.25);
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(120, 43, 255, 0.15);
+  position: relative;
+  color: white;
+  height: 380px;
+}
+
+/* Glow in bottom-right corner (for the pie chart) */
+.pie-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 150px;
+  height: 100px;
+  background: radial-gradient(circle at bottom right, #9448ff, transparent 70%);
+  border-bottom-right-radius: 20px;
+  opacity: 0.7;
+}
+
+/* Chart Title */
+.chart-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #c9b4ff;
+  margin-bottom: 10px;
+}
+
+/* Monthly Tag */
+.chart-tag {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: #b28aff;
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 12px;
+  color: white;
+}
+
+/* X/Y Axis Styling */
+.recharts-cartesian-axis-tick text {
+  fill: #cda9ff !important;
+  font-size: 12px;
+}
+
+
+
+
+/* Container */
+.transactions-container {
+  background: #01041E;
+  padding: 30px;
+  border-radius: 15px;
+  border: 1px solid rgba(180, 150, 255, 0.25);
+   box-shadow: 0 0 20px rgba(120, 43, 255, 0.15);
+  color: white;
+  width: 80%;
+}
+
+/* Title */
+.transactions-title {
+  font-size: 32px;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Top section */
+.transactions-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* Search Bar */
+.search-bar {
+  flex: 1;
+  background: #4D4283;
+  padding: 10px 15px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  height: 15px;
+}
+
+.search-bar input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  margin-top: 30px;
+}
+
+.search-icon {
+  margin-right: 10px;
+  opacity: 0.7;
+}
+
+/* Buttons */
+.add-btn {
+  background: #A78BFA;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 30%;
+}
+
+.filter-btn {
+  background: #A78BFA;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+/* Table */
+.table-wrapper {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transactions-table th {
+  text-align: center;
+  color: #ccc;
+  font-weight: 600;
+  height: 40px;
+}
+
+.transactions-table td {
+  height: 60px;
+}
+
+/* Type Badges */
+.type-badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.income {
+  background: #1c7c3a;
+}
+
+.expense {
+  background: #b73232;
+}
+
+/* Amount Colors */
+.amount-positive {
+  color: #4bf54f;
+  font-weight: 700;
+}
+
+.amount-negative {
+  color: #ff4d4d;
+  font-weight: 700;
+}
+
+/* Edit button */
+.edit-btn {
+  background: #b197fc;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+

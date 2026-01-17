@@ -1,0 +1,99 @@
+.account-page {
+  min-height: 100vh;
+  background: linear-gradient(100deg, #111827, #0f0f1a);
+  color: white;
+  padding: 40px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* TITLE */
+.account-title {
+  text-align: center;
+  font-size: 42px;
+  color: #a78bfa;
+  margin-bottom: 50px;
+}
+
+/* MAIN LAYOUT */
+.account-container {
+  display: flex;
+  gap: 50px;
+  justify-content: center;
+}
+
+/* PROFILE CARD */
+.account-card {
+  width: 560px;
+  background: #01041E;
+  border-radius: 20px;
+  padding: 32px;
+  border: solid 1px #a78bfa61;
+}
+
+/* PROFILE HEADER */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* AVATAR */
+.avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #a78bfa;
+  color: #111827;
+  font-size: 55px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* BUTTONS */
+.upload-btn {
+  background: #A78BFA;
+  color: white;
+  border: 2px solid white;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: #a78bfa;
+  font-size: 15px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+/* INFO SECTION */
+.profile-info {
+  margin-top: 24px;
+}
+
+.profile-info div {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-info span {
+  font-size: 12px;
+  color: #9ca3af;
+  min-width: 70px;
+}
+
+.copy-btn:hover {
+  cursor: pointer;
+}
+
+

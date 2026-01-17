@@ -1,0 +1,128 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+/* Smaller modal + perfectly centered */
+.modal-content {
+  background: #0E1025;
+  border: 2px solid #6A4BFF;
+  border-radius: 18px;
+  padding: 25px;
+  width: 430px;
+  max-width: 95%;
+  max-height: 90vh;           /* limits modal height */
+  overflow-y: auto;           /* vertical scroll */
+  overflow-x: hidden;         /* hide horizontal scroll */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Custom scrollbar */
+.modal-content::-webkit-scrollbar {
+  width: 0px;                  /* slim scrollbar */
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: none;     /* dark track */
+  border-radius: 8px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background-color: #6A4BFF;   /* nice purple-blue thumb */
+  border-radius: 8px;
+  border: 2px solid #1A1C35;  /* padding around thumb */
+}
+
+
+.modal-title {
+  text-align: center;
+  margin-bottom: 18px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #b399ff;
+  width: 90%;  /* changed to 90% */
+}
+
+/* Row for date + type */
+.row-2 {
+  display: flex;
+  justify-content: center; 
+  gap: 30px;
+  margin-bottom: 15px;
+  width: 90%;  /* changed to 90% */
+  height: 100px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  width: 90%;  /* changed to 90% */
+}
+
+.input-group label {
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #d3c6ff;
+}
+
+.input-group input,
+.input-group textarea {
+  background: #1A1C35;
+  border: 1px solid #3b3d5c;
+  border-radius: 6px;
+  padding: 6px;
+  color: white;
+  font-size: 15px;
+}
+
+.input-group select {
+  width: 100%;
+  background: #1A1C35;
+  border: 1px solid #3b3d5c;
+  border-radius: 6px;
+  padding: 20px;
+  color: white;
+  font-size: 13px;
+}
+
+textarea {
+  min-height: 65px;
+  resize: none;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-top: 22px;
+  width: 90%; /* changed to 90% */
+}
+
+.confirm-btn {
+  background: #b388ff;
+  border: none;
+  padding: 12px 35px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 2px solid #b388ff;
+  padding: 12px 35px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  color: white;
+}
