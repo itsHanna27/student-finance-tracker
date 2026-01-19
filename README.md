@@ -61,7 +61,7 @@ Student Finance Tracker, also called UniBudget, is a simple and friendly persona
    CLOUDINARY_API_SECRET=your_api_secret
    ```
 
-   ⚠️ Do not commit your `.env` file to GitHub, as it contains sensitive credentials.
+   Do not commit your `.env` file to GitHub, as it contains sensitive credentials.
 
 4. Run the development server:
 
