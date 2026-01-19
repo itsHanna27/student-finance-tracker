@@ -5,6 +5,7 @@ import Sidebar from "../Navbar/Sidebar";
 import Friends from "./Friends";
 import AddFriends from "./addFriends";
 import FriendRequest from "./friendrequest";
+import BudgetandSaving from "./BudgetandSaving";
 import "../css/Account.css";
 
 const Account = () => {
@@ -207,7 +208,7 @@ const Account = () => {
             {activeTab === "friends" && <Friends />}
 {activeTab === "addFriends" && <AddFriends />}
 {activeTab === "friendrequest" && <FriendRequest />}
-
+{activeTab === "budget" && <BudgetandSaving />}
 
 
           </div>

@@ -37,12 +37,13 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
           Friend Requests
         </li>
 
-        <li
-          className={activeTab === "budgeting" ? "active" : ""}
-          onClick={() => setActiveTab("budgeting")}
-        >
-          Budgeting and Saving
-        </li>
+      <li
+        className={activeTab === "budget" ? "active" : ""}
+        onClick={() => setActiveTab("budget")}
+      >
+        Budgeting and Saving
+      </li>
+
 
         
       </ul>

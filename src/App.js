@@ -7,6 +7,7 @@ import Account from "./Main/Account";
 import Friends from "./Main/Friends";
 import AddFriends from "./Main/addFriends";
 import FriendRequest from "./Main/friendrequest";
+import BudgetandSaving from "./Main/BudgetandSaving";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/friends" element={<Friends />} />
         <Route path="/addfriends" element={<AddFriends />} />
         <Route path="/friendRequest" element={<FriendRequest />} />
+         <Route path="/BudgetandSaving" element={<BudgetandSaving />} />
 
 
       </Routes>
