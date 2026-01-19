@@ -117,7 +117,7 @@ return ( <div className="modal-overlay" onClick={onClose}>
     {/* Subscription */}
     {type === "subscription" && (
       <>
-        <div className="input-group" style={{ marginTop: "-15px", width:"370px", marginRight:"12px" }}>
+        <div className="input-group" style={{ marginTop: "-15px", marginBottom:"-15px" ,width:"370px", marginRight:"12px" }}>
           <label>Subscription Name</label>
           <input type="text" placeholder="e.g., Spotify, Netflix" />
         </div>
