@@ -1,5 +1,5 @@
 console.log("THIS SERVER FILE IS RUNNING");
-
+const transactionRoutes = require("./routes/transactionRoutes");
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -113,6 +113,8 @@ app.post("/login", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
+app.use("/", transactionRoutes);
 
 // Start server 
 app.listen(PORT, () => {

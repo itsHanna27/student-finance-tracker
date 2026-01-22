@@ -36,15 +36,55 @@ const Transactions = () => {
   const balanceTarget = 634.56;
   const goalTarget = 350;
 
+  const [transactions, setTransactions] = useState([]);
+useEffect(() => {
+  const fetchTransactions = async () => {
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!currentUser.id) return; 
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/transactions?userId=${currentUser.id}`
+      );
+      const data = await res.json();
+
+      // making sure data is an array
+      if (Array.isArray(data)) {
+        setTransactions(data);
+      } else {
+        setTransactions([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch transactions:", err);
+      setTransactions([]);
+    }
+  };
+
+  fetchTransactions();
+}, []);
+
+
+const handleAddTransaction = (newTransaction) => {
+  setTransactions((prev) => [...prev, newTransaction]);
+};
+
   // Ultra-smooth animation
   useCountAnimation(balanceTarget, goalTarget, setBalance, setGoalSaved, setProgress, 800);
 
-  const transactionsData = [
-    { date: "02/10/2025", type: "Income", category: "Loan", description: "Student Maintenance Loan", amount: 1200.0 },
-    { date: "03/10/2025", type: "Expense", category: "Rent", description: "October Rent Payment", amount: -450.0 },
-    { date: "05/10/2025", type: "Expense", category: "Food", description: "Tesco Grocery Shop", amount: -37.8 },
-    { date: "08/10/2025", type: "Expense", category: "Travel", description: "Train to London", amount: -22.0 }
-  ];
+ // const transactionsData = [
+   // { date: "02/10/2025", type: "Income", category: "Loan", description: "Student Maintenance Loan", amount: 1200.0 },
+   // { date: "03/10/2025", type: "Expense", category: "Rent", description: "October Rent Payment", amount: -450.0 },
+  //  { date: "05/10/2025", type: "Expense", category: "Food", description: "Tesco Grocery Shop", amount: -37.8 },
+    //{ date: "08/10/2025", type: "Expense", category: "Travel", description: "Train to London", amount: -22.0 }
+ // ];
+const getTransactionType = (t) => {
+  if (t.type.toLowerCase() === "subscription") return t.name || "Subscription";
+  if (t.type.toLowerCase() === "studentfinance") return "Student Finance";
+  return t.type.charAt(0).toUpperCase() + t.type.slice(1);
+};
+
+
+
 
   const PIE_COLORS = ["#b387ff", "#f5a6ff", "#c45bff", "#f4caff"];
   const lineData = [
@@ -57,6 +97,12 @@ const Transactions = () => {
     { name: "Food", value: 300 }, { name: "Transport", value: 200 },
     { name: "Shopping", value: 250 }, { name: "Subscriptions", value: 150 }
   ];
+const getTransactionCategory = (t) => {
+  if (t.type.toLowerCase() === "subscription") return t.name || "Subscription";
+  if (t.type.toLowerCase() === "studentfinance") return "Student Finance";
+  if (t.type.toLowerCase() === "house") return t.category || "House / Bills";
+  return t.category || "-";
+};
 
   return (
     <>
@@ -148,9 +194,14 @@ const Transactions = () => {
               <Withdraw onClose={() => setIsWithdrawOpen(false)} />
             )}
 
-            {isAddTransactionOpen && (
-              <AddTransaction onClose={() => setIsAddTransactionOpen(false)} />
-            )}
+           {isAddTransactionOpen && (
+          <AddTransaction
+            onClose={() => setIsAddTransactionOpen(false)}
+            onAddTransaction={handleAddTransaction}
+          />
+        )}
+
+
 
             {/* Charts */}
             <div className="charts-container">
@@ -257,25 +308,45 @@ const Transactions = () => {
                     </tr>
                   </thead>
 
-                  <tbody>
-                    {transactionsData.map((t, index) => (
-                      <tr key={index}>
-                        <td>{t.date}</td>
-                        <td>
-                          <span className={t.type === "Income" ? "type-badge income" : "type-badge expense"}>
-                            {t.type}
-                          </span>
-                        </td>
-                        <td>{t.category}</td>
-                        <td>{t.description}</td>
-                        <td className={t.amount > 0 ? "amount-positive" : "amount-negative"}>
-                          {t.amount.toFixed(2)}
-                        </td>
-                        <td><button className="edit-btn"><FaEdit /></button></td>
-                      </tr>
-                    ))}
-                  </tbody>
+                <tbody>
+                  {transactions.map((t, index) => (
+                    <tr key={index}>
+                      {/* Date */}
+                      <td>{t.date ? new Date(t.date).toLocaleDateString() : "-"}</td>
 
+                      {/* Type */}
+                      <td>
+                        <span className={`type-badge ${t.type.toLowerCase()}`}>
+                          {t.type.toLowerCase() === "subscription"
+                            ? "Subscription"
+                            : t.type.charAt(0).toUpperCase() + t.type.slice(1)}
+                        </span>
+                      </td>
+
+                      {/* Category */}
+                      <td>
+                        {t.type.toLowerCase() === "subscription"
+                          ? t.category || "-" 
+                          : t.type.toLowerCase() === "studentfinance"
+                          ? "Student Finance"
+                          : t.category || "-"}
+                      </td>
+
+                      {/* Description */}
+                      <td>{t.description ?? "-"}</td>
+
+                      {/* Amount */}
+                      <td className={t.amount > 0 ? "amount-positive" : "amount-negative"}>
+                        {(t.amount ?? 0).toFixed(2)}
+                      </td>
+
+                      {/* Edit button */}
+                      <td>
+                        <button className="edit-btn"><FaEdit /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
                 </table>
               </div>
 

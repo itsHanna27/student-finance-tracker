@@ -326,6 +326,16 @@
   background: #b73232;
 }
 
+.subscription{
+  background: black;
+}
+.house {
+  background: #9448ff;
+}
+.studentfinance {
+  background: #234fff;
+}
+
 /* Amount Colors */
 .amount-positive {
   color: #4bf54f;
