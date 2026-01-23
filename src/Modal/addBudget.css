@@ -1,4 +1,4 @@
-/* Modal.css */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -12,19 +12,18 @@
   z-index: 9999;
 }
 
-/* MAIN MODAL BOX */
 .modal-content {
   background: #03081b;
   border: 2px solid #7663b0;
   border-radius: 30px;
   padding: 30px;
-  min-width: 360px;
-  max-width: 420px;
+  min-width: 510px;
+  max-width: 550px;
   color: white;
   box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
-/* Title */
+
 .modal-content h2 {
   text-align: center;
   margin-bottom: 20px;
@@ -32,7 +31,7 @@
   font-size: 28px;
 }
 
-/* Progress text row */
+
 .progress-row {
   display: flex;
   justify-content: space-between;
@@ -40,7 +39,7 @@
   font-size: 15px;
 }
 
-/* Progress bar */
+
 .progress-bar {
   width: 100%;
   height: 8px;
@@ -57,7 +56,6 @@
   transition: width 0.7s ease;
 }
 
-/* Input */
 input {
   width: 100%;
   height: 45px;
@@ -70,14 +68,14 @@ input {
   font-size: 16px;
 }
 
-/* Buttons container */
+
 .modal-buttons {
   display: flex;
   justify-content: space-between;
   gap: 15px;
 }
 
-/* Confirm & Cancel buttons */
+
 .confirm-btn,
 .cancel-btn {
   flex: 1;

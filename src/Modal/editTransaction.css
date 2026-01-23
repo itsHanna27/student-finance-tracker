@@ -1,0 +1,48 @@
+.modal-content {
+  position: relative;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+   background: #ff5c5c;
+}
+
+.delete-btn:hover {
+  background: #9f0a0a;
+  color: white;
+}
+
+/* Click */
+.delete-btn:active {
+  transform: scale(0.97);
+}
+
+/* Optional: focus ring */
+.delete-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 92, 92, 0.35);
+}
+.close-btn {
+  background: #8b5cf6;
+  border: none;
+  border-radius: 8px;
+  border: 1px solid white;
+  color: white;
+  padding: 6px 12px;
+  cursor: pointer;
+    position: absolute; 
+  top: 15px;        
+  left:480px; 
+  font-size: 15px;   
+}

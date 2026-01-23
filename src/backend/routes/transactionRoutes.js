@@ -46,4 +46,51 @@ router.get("/transactions", async (req, res) => {
   }
 });
 
+// ====================
+// Delete a transaction
+// ====================
+router.delete("/transactions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Transaction.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    res.json({ message: "Transaction deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting transaction:", err);
+    res.status(500).json({ message: "Failed to delete transaction" });
+  }
+});
+
+// ====================
+// Update a transaction
+// ====================
+router.put("/transactions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    const updatedTransaction = await Transaction.findByIdAndUpdate(
+      id,
+      updatedData,
+      { new: true } // return the updated doc
+    );
+
+    if (!updatedTransaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    res.json(updatedTransaction);
+  } catch (err) {
+    console.error("Error updating transaction:", err);
+    res.status(500).json({ message: "Failed to update transaction" });
+  }
+});
+
+
+
 module.exports = router;

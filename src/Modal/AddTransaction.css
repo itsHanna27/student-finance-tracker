@@ -16,9 +16,9 @@
   padding: 25px;
   width: 430px;
   max-width: 95%;
-  max-height: 90vh;           /* limits modal height */
-  overflow-y: auto;           /* vertical scroll */
-  overflow-x: hidden;         /* hide horizontal scroll */
+  max-height: 90vh;           
+  overflow-y: auto;           
+  overflow-x: hidden;         
   color: white;
   display: flex;
   flex-direction: column;
@@ -27,18 +27,18 @@
 
 /* Custom scrollbar */
 .modal-content::-webkit-scrollbar {
-  width: 0px;                  /* slim scrollbar */
+  width: 0px;                 
 }
 
 .modal-content::-webkit-scrollbar-track {
-  background: none;     /* dark track */
+  background: none;     
   border-radius: 8px;
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-  background-color: #6A4BFF;   /* nice purple-blue thumb */
+  background-color: #6A4BFF;   
   border-radius: 8px;
-  border: 2px solid #1A1C35;  /* padding around thumb */
+  border: 2px solid #1A1C35;  
 }
 
 
@@ -48,7 +48,7 @@
   font-size: 20px;
   font-weight: 700;
   color: #b399ff;
-  width: 90%;  /* changed to 90% */
+  width: 90%;  
 }
 
 /* Row for date + type */
@@ -57,14 +57,14 @@
   justify-content: center; 
   gap: 30px;
   margin-bottom: 15px;
-  width: 90%;  /* changed to 90% */
+  width: 90%;  
   height: 100px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  width: 90%;  /* changed to 90% */
+  width: 90%;  
 }
 
 .input-group label {
@@ -81,6 +81,7 @@
   padding: 6px;
   color: white;
   font-size: 15px;
+  text-align: center;
 }
 
 .input-group select {
@@ -91,6 +92,7 @@
   padding: 20px;
   color: white;
   font-size: 13px;
+   text-align: center;
 }
 
 textarea {

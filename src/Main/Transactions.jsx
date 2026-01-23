@@ -7,6 +7,7 @@ import useCountAnimation from "../Animation/useCountAnimation";
 
 import AddBudget from "../Modal/addBudget";
 import Withdraw from "../Modal/withdraw";
+import EditTransaction from "../Modal/editTransaction";
 import AddTransaction from "../Modal/AddTransaction";
 
 
@@ -32,9 +33,17 @@ const Transactions = () => {
 
   const [isAddBudgetOpen, setIsAddBudgetOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+    const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
+   const [currentEditTransaction, setCurrentEditTransaction] = useState(null);
+
+   const [searchTerm, setSearchTerm] = useState("");
+const [filteredTransactions, setFilteredTransactions] = useState([]);
+
 
   const balanceTarget = 634.56;
   const goalTarget = 350;
+
+
 
   const [transactions, setTransactions] = useState([]);
 useEffect(() => {
@@ -48,7 +57,7 @@ useEffect(() => {
       );
       const data = await res.json();
 
-      // making sure data is an array
+      // making data a array
       if (Array.isArray(data)) {
         setTransactions(data);
       } else {
@@ -67,7 +76,27 @@ useEffect(() => {
 const handleAddTransaction = (newTransaction) => {
   setTransactions((prev) => [...prev, newTransaction]);
 };
+const handleSearch = (e) => {
+  const value = e.target.value.toLowerCase();
+  setSearchTerm(value);
 
+  const filtered = transactions.filter((t) => {
+    const category = t.category ? t.category.toLowerCase() : "";
+    const description = t.description ? t.description.toLowerCase() : "";
+    const type = t.type ? t.type.toLowerCase() : "";
+    return (
+      category.includes(value) ||
+      description.includes(value) ||
+      type.includes(value)
+    );
+  });
+
+  setFilteredTransactions(filtered);
+};
+
+  useEffect(() => {
+  setFilteredTransactions(transactions);
+}, [transactions]);
   // Ultra-smooth animation
   useCountAnimation(balanceTarget, goalTarget, setBalance, setGoalSaved, setProgress, 800);
 
@@ -103,32 +132,69 @@ const getTransactionCategory = (t) => {
   if (t.type.toLowerCase() === "house") return t.category || "House / Bills";
   return t.category || "-";
 };
+const handleUpdateTransaction = async (updatedTransaction) => {
+  try {
+    const res = await fetch(`http://localhost:5000/transactions/${updatedTransaction._id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedTransaction),
+    });
+
+    if (!res.ok) throw new Error("Failed to update transaction on server");
+
+    const savedTransaction = await res.json();
+
+    setTransactions(transactions.map(t => 
+      t._id === savedTransaction._id ? savedTransaction : t
+    ));
+  } catch (err) {
+    console.error("Update failed:", err);
+    alert("Could not save changes. Please try again.");
+  }
+};
+
+const handleDeleteTransaction = async (id) => {
+  try {
+    const res = await fetch(`http://localhost:5000/transactions/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) throw new Error("Delete failed");
+
+    setTransactions(transactions.filter(t => t._id !== id));
+    setIsEditTransactionOpen(false);
+  } catch (err) {
+    console.error(err);
+    alert("Could not delete transaction. Please try again.");
+  }
+};
+
 
   return (
     <>
       <style>{`
         html, body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(100deg, #111827, #0F0F1A);
-    color: white;
-    width: 100%;
-    min-height: 100%;
-    overflow-x: hidden;
-     overflow-x: hidden !important;
-  }
+        margin: 0;
+        padding: 0;
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(100deg, #111827, #0F0F1A);
+        color: white;
+        width: 100%;
+        min-height: 100%;
+        overflow-x: hidden;
+        overflow-x: hidden !important;
+      }
 
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(100deg, #111827, #0F0F1A);
-    z-index: -1;
-  }
+      body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(100deg, #111827, #0F0F1A);
+        z-index: -1;
+      }
         .progress-fill {
           will-change: width;
           transition: width 0.7s linear;
@@ -190,18 +256,24 @@ const getTransactionCategory = (t) => {
               <AddBudget onClose={() => setIsAddBudgetOpen(false)} />
             )}
 
-            {isWithdrawOpen && (
-              <Withdraw onClose={() => setIsWithdrawOpen(false)} />
-            )}
 
-           {isAddTransactionOpen && (
-          <AddTransaction
-            onClose={() => setIsAddTransactionOpen(false)}
-            onAddTransaction={handleAddTransaction}
+        {isEditTransactionOpen && currentEditTransaction && (
+          <EditTransaction
+            transaction={currentEditTransaction}
+            onClose={() => setIsEditTransactionOpen(false)}
+            onSave={handleUpdateTransaction}
+            onDelete={handleDeleteTransaction}
           />
         )}
 
-
+          {isAddTransactionOpen && (
+          <AddTransaction
+            onClose={() => setIsAddTransactionOpen(false)}
+            onAddTransaction={handleAddTransaction}
+            setTransactions={setTransactions}       
+            setShowEdit={setIsEditTransactionOpen} 
+          />
+        )}
 
             {/* Charts */}
             <div className="charts-container">
@@ -267,36 +339,45 @@ const getTransactionCategory = (t) => {
             {/* Transactions */}
             <div className="transactions-container">
               <h2 className="transactions-title">
-                <FaCreditCard style={{color: "A78BFA", fontSize:"45px"}} /> 
+                <FaCreditCard style={{ color: "#A78BFA", fontSize: "45px" }} /> 
                 Transactions
               </h2>
 
-              <div className="transactions-top">
-                <div className="search-bar">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", flexWrap: "wrap", gap:"15px" }}>
+                <div className="search-bar" style={{ flex: 1, minWidth: "250px" }}>
                   <FaSearch className="search-icon" />
-                  <input placeholder="Search Transaction.." />
+                  <input
+                    placeholder="Search transaction by category, type, or description"
+                    value={searchTerm}
+                    onChange={handleSearch}
+                  />
                 </div>
 
-                <button style={{background: "#A78BFA",
-                  padding: "10px 18px",
-                  borderRadius: "8px",
-                  border: "none",
-                  color: "white",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px"}}>Search</button>
+                <div style={{ display: "flex", gap: "10px", marginTop: "5px" }}>
+                  <button
+                    style={{
+                      background: "#A78BFA",
+                      padding: "10px 18px",
+                      borderRadius: "8px",
+                      border: "none",
+                      color: "white",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px"
+                    }}
+                    onClick={() => setIsAddTransactionOpen(true)}
+                  >
+                    <FaPlus /> Add Transaction
+                  </button>
 
-                <button style={{background: "#A78BFA", padding: "10px 18px", borderRadius: "8px", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center",gap: "5px"}} onClick={() => setIsAddTransactionOpen(true)}> 
-                  <FaPlus /> Add Transaction
-                </button>
-
-                <button className="filter-btn"><FaFilter /></button>
+                  <button className="filter-btn"><FaFilter /></button>
+                </div>
               </div>
 
-              <div className="table-wrapper">
-                <table className="transactions-table">
+              <div className="table-wrapper" style={{ overflowX: "auto" }}>
+                <table className="transactions-table" style={{ width: "100%", tableLayout: "fixed" }}>
                   <thead>
                     <tr>
                       <th>Date</th>
@@ -309,49 +390,45 @@ const getTransactionCategory = (t) => {
                   </thead>
 
                 <tbody>
-                  {transactions.map((t, index) => (
-                    <tr key={index}>
-                      {/* Date */}
-                      <td>{t.date ? new Date(t.date).toLocaleDateString() : "-"}</td>
+            {filteredTransactions.map((t, index) => (
+              <tr key={index}>
+                <td>{t.date ? new Date(t.date).toLocaleDateString() : "-"}</td>
 
-                      {/* Type */}
-                      <td>
-                        <span className={`type-badge ${t.type.toLowerCase()}`}>
-                          {t.type.toLowerCase() === "subscription"
-                            ? "Subscription"
-                            : t.type.charAt(0).toUpperCase() + t.type.slice(1)}
-                        </span>
-                      </td>
+                <td>
+                  <span className={`type-badge ${t.type}`}>
+                    {t.type === "studentfinance"
+                      ? "Student Finance"
+                      : t.type === "subscription"
+                      ? "Subscription"
+                      : t.type.charAt(0).toUpperCase() + t.type.slice(1)}
+                  </span>
+                </td>
 
-                      {/* Category */}
-                      <td>
-                        {t.type.toLowerCase() === "subscription"
-                          ? t.category || "-" 
-                          : t.type.toLowerCase() === "studentfinance"
-                          ? "Student Finance"
-                          : t.category || "-"}
-                      </td>
+                <td>
+                  {t.type.toLowerCase() === "subscription"
+                    ? t.category || "-" 
+                    : t.type.toLowerCase() === "studentfinance"
+                    ? "Student Finance"
+                    : t.category || "-"}
+                </td>
 
-                      {/* Description */}
-                      <td>{t.description ?? "-"}</td>
+                <td style={{ wordBreak: "break-word" }}>{t.description ?? "-"}</td>
 
-                      {/* Amount */}
-                      <td className={t.amount > 0 ? "amount-positive" : "amount-negative"}>
-                        {(t.amount ?? 0).toFixed(2)}
-                      </td>
+                <td className={t.amount > 0 ? "amount-positive" : "amount-negative"}>
+                  {(t.amount ?? 0).toFixed(2)}
+                </td>
 
-                      {/* Edit button */}
-                      <td>
-                        <button className="edit-btn"><FaEdit /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                </table>
-              </div>
-
+                <td>
+                  <button className="edit-btn" onClick={() => { setCurrentEditTransaction(t); setIsEditTransactionOpen(true); }}>
+                    <FaEdit />
+                  </button>
+                </td>
+              </tr>
+            ))}
+             </tbody>
+              </table>
             </div>
-
+          </div>
           </div>
         </div>
       </div>

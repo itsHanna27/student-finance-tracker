@@ -145,30 +145,30 @@ const Account = () => {
                     </button>
 
                     <button
-  className="remove-btn"
-  onClick={async () => {
-    try {
-      const res = await fetch("http://localhost:5000/remove-avatar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
-      });
+                  className="remove-btn"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("http://localhost:5000/remove-avatar", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId: user.id }),
+                      });
 
-      if (!res.ok) throw new Error("Remove failed");
+                      if (!res.ok) throw new Error("Remove failed");
 
-      const data = await res.json();
+                      const data = await res.json();
 
-      setAvatar("");
-      const updatedUser = { ...user, avatar: "" };
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    } catch (err) {
-      console.error("Failed to remove avatar:", err);
-    }
-  }}
->
-  Remove
-</button>
+                      setAvatar("");
+                      const updatedUser = { ...user, avatar: "" };
+                      setUser(updatedUser);
+                      localStorage.setItem("user", JSON.stringify(updatedUser));
+                    } catch (err) {
+                      console.error("Failed to remove avatar:", err);
+                    }
+                  }}
+                >
+                  Remove
+                </button>
 
                   </div>
                 </div>
@@ -206,9 +206,9 @@ const Account = () => {
             )}
 
             {activeTab === "friends" && <Friends />}
-{activeTab === "addFriends" && <AddFriends />}
-{activeTab === "friendrequest" && <FriendRequest />}
-{activeTab === "budget" && <BudgetandSaving />}
+            {activeTab === "addFriends" && <AddFriends />}
+            {activeTab === "friendrequest" && <FriendRequest />}
+            {activeTab === "budget" && <BudgetandSaving />}
 
 
           </div>

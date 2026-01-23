@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import "./AddTransaction.css";
 const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-const AddTransaction = ({ onClose, onAddTransaction }) => {
+const AddTransaction = ({ onClose, onAddTransaction, setTransactions, setShowEdit }) => {
+ 
+
 
   
   const [type, setType] = useState("expense");
@@ -22,6 +24,13 @@ const AddTransaction = ({ onClose, onAddTransaction }) => {
   const [subscriptionName, setSubscriptionName] = useState("");
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("");
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const allowFutureDate =
+    type === "subscription" ||
+    type === "house" ||
+    type === "studentFinance";
+    
   // Student Finance (3-term payments)
   const [studentFinanceTerms, setStudentFinanceTerms] = useState([
     { date: "", amount: "" },
@@ -59,51 +68,132 @@ const AddTransaction = ({ onClose, onAddTransaction }) => {
     if (val !== "other") setCustomCategory("");
   };
 
-// Confirm button
+  const handleDeleteTransaction = async (id) => {
+  try {
+    const res = await fetch(`http://localhost:5000/transactions/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) throw new Error("Delete failed");
+
+    setTransactions(prev => prev.filter(t => t._id !== id));
+    setShowEdit(false);
+  } catch (err) {
+    console.error(err);
+    alert("Could not delete transaction. Please try again.");
+  }
+};
+
+
 const handleConfirm = async () => {
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}"); // get logged-in user
+  // ===== GET LOGGED-IN USER =====
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
   if (!currentUser.id) {
     alert("User not found. Please log in.");
     return;
   }
 
-  let payload;
+  // ===== NORMALISE AMOUNT =====
+  const normaliseAmount = (type, value) => {
+    const amt = Number(value);
+    if (isNaN(amt)) return 0;
+    return type === "expense" || type === "subscription" || type === "house" ? -Math.abs(amt) : Math.abs(amt);
+  };
+
+  // ===== VALIDATION =====
+  if (type !== "studentFinance" && !date) {
+    alert("Please select a date.");
+    return;
+  }
+
+  if ((type === "expense" || type === "income") && !selectedCategory) {
+    alert("Please select a category.");
+    return;
+  }
+
+  if (type === "house" && !houseCategory) {
+    alert("Please select a house/bills category.");
+    return;
+  }
+
+  if (type === "subscription" && !subscriptionName) {
+    alert("Please enter a subscription name.");
+    return;
+  }
+
+  if (type !== "studentFinance" && (!amount || Number(amount) <= 0)) {
+    alert("Please enter a valid amount.");
+    return;
+  }
 
   if (type === "studentFinance") {
-    payload = {
-      type,
-      studentFinancePayments: studentFinanceTerms,
-      userId: currentUser.id, 
-    };
-  } else if (type === "house") {
-    payload = {
-      date,
-      type,
-      category: houseCategory,
-      frequency: houseFrequency,
-      description,
-      amount: Number(amount),
-      userId: currentUser.id,
-    };
-  } else if (type === "subscription") {
-    payload = {
-      date,
-      type,
-      category: subscriptionName, 
-      frequency: subscriptionFrequency,
-      amount: Number(amount),
-      userId: currentUser.id,
-    };
-  } else {
-    payload = {
-      date,
-      type,
-      category: selectedCategory === "other" ? customCategory : selectedCategory,
-      description,
-      amount: Number(amount),
-      userId: currentUser.id,
-    };
+    const invalidTerm = studentFinanceTerms.some(
+      (t) => !t.date || !t.amount
+    );
+    if (invalidTerm) {
+      alert("Please complete all student finance term dates and amounts.");
+      return;
+    }
   }
+
+  if (date && !allowFutureDate && new Date(date) > new Date()) {
+    alert("Date cannot be in the future for this transaction type.");
+    return;
+  }
+
+  let payload;
+  switch (type) {
+    case "studentFinance":
+      payload = {
+        type,
+        studentFinancePayments: studentFinanceTerms.map(t => ({
+          date: t.date,
+          amount: normaliseAmount("income", t.amount),
+        })),
+        amount: studentFinanceTerms.reduce(
+          (sum, t) => sum + Number(t.amount || 0),
+          0
+        ),
+        userId: currentUser.id,
+      };
+      break;
+
+    case "house":
+      payload = {
+        date,
+        type,
+        category: houseCategory,
+        frequency: houseFrequency,
+        description,
+        amount: normaliseAmount(type, amount),
+        userId: currentUser.id,
+      };
+      break;
+
+    case "subscription":
+      payload = {
+        date,
+        type,
+        category: subscriptionName,
+        frequency: subscriptionFrequency,
+        amount: normaliseAmount(type, amount),
+        userId: currentUser.id,
+      };
+      break;
+
+    default:
+      // expense / income
+      payload = {
+        date,
+        type,
+        category: selectedCategory === "other" ? customCategory : selectedCategory,
+        description,
+        amount: normaliseAmount(type, amount),
+        userId: currentUser.id,
+      };
+  }
+
 
   try {
     const res = await fetch("http://localhost:5000/transactions", {
@@ -113,7 +203,7 @@ const handleConfirm = async () => {
     });
 
     const savedTransaction = await res.json();
-    onAddTransaction(savedTransaction); 
+    onAddTransaction(savedTransaction);
     onClose();
   } catch (err) {
     console.error("Error saving transaction:", err);
@@ -121,18 +211,29 @@ const handleConfirm = async () => {
   }
 };
 
+
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">{modalTitle}</h2>
 
-        <div className="row-2">
-          <div className="input-group" style={{ width: "200px" }}>
-            <label>Date</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </div>
+      <div className="row-2">
+      {type !== "studentFinance" && (
+        <div className="input-group">
+          <label>Date</label>
+        <input
+          type="date"
+          value={date}
+          max={allowFutureDate ? undefined : today}
+          onChange={(e) => setDate(e.target.value)}
+        />
 
-          <div className="input-group" style={{ width: "200px" }}>
+        </div>
+      )}
+    
+
+          <div className="input-group">
             <label>Type</label>
             <select
               value={type}
@@ -170,7 +271,7 @@ const handleConfirm = async () => {
                 placeholder="Type your category"
                 value={customCategory}
                 onChange={(e) => setCustomCategory(e.target.value)}
-                style={{ marginTop: "8px", width: "310px", marginLeft: "35px", borderRadius: "15px" }}
+                style={{marginTop:"15px", width:"97%"}}
               />
             )}
           </div>
@@ -179,7 +280,7 @@ const handleConfirm = async () => {
         {/* House / Bills */}
         {type === "house" && (
           <>
-            <div className="input-group" style={{ marginTop: "-15px", width: "385px" }}>
+            <div className="input-group" style={{ marginTop: "-15px" }}>
               <label>Category</label>
               <select value={houseCategory} onChange={(e) => setHouseCategory(e.target.value)}>
                 <option value="">Select category</option>
@@ -188,7 +289,7 @@ const handleConfirm = async () => {
                 ))}
               </select>
             </div>
-            <div className="input-group" style={{ marginTop: "15px", width: "385px" }}>
+            <div className="input-group" style={{ marginTop: "15px" }}>
               <label>Frequency</label>
               <select value={houseFrequency} onChange={(e) => setHouseFrequency(e.target.value)}>
                 <option value="">Select frequency</option>
@@ -203,7 +304,7 @@ const handleConfirm = async () => {
         {/* Subscription */}
         {type === "subscription" && (
           <>
-            <div className="input-group" style={{ marginTop: "-15px", marginBottom: "10", width: "370px", marginRight: "12px" }}>
+            <div className="input-group" style={{ marginTop: "-5px", width:"86%"}}>
               <label>Subscription Name</label>
               <input
                 type="text"
@@ -212,7 +313,7 @@ const handleConfirm = async () => {
                 onChange={(e) => setSubscriptionName(e.target.value)}
               />
             </div>
-            <div className="input-group" style={{ marginTop: "15px", width: "385px" }}>
+            <div className="input-group">
               <label>Frequency</label>
               <select value={subscriptionFrequency} onChange={(e) => setSubscriptionFrequency(e.target.value)}>
                 <option value="">Select frequency</option>
@@ -226,7 +327,7 @@ const handleConfirm = async () => {
 
         {/* Student Finance */}
         {type === "studentFinance" && (
-          <div style={{ marginTop: "15px" }}>
+          <div>
             <h3>Termly Payments</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {[1, 2, 3].map((term, index) => (
@@ -262,7 +363,9 @@ const handleConfirm = async () => {
         {/* Description & Amount */}
         {type !== "studentFinance" && (
           <>
-            <div className="input-group" style={{ width: "385px", marginTop: "20px" }}>
+           <div className="input-group description-group">
+
+              
               <label>Description</label>
               <textarea
                 placeholder="Optional notes..."
