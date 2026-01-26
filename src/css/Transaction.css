@@ -356,3 +356,28 @@
   color: white;
 }
 
+.table-wrapper {
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #1f1f2e;
+  border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #885fe8;
+  border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #8b5cf6;
+}
+

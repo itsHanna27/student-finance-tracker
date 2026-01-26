@@ -255,6 +255,9 @@ const handleDeleteTransaction = async (id) => {
             {isAddBudgetOpen && (
               <AddBudget onClose={() => setIsAddBudgetOpen(false)} />
             )}
+             {isWithdrawOpen && (
+              <Withdraw onClose={() => setIsWithdrawOpen(false)} />
+            )}
 
 
         {isEditTransactionOpen && currentEditTransaction && (
@@ -389,7 +392,7 @@ const handleDeleteTransaction = async (id) => {
                     </tr>
                   </thead>
 
-                <tbody>
+            <tbody>
             {filteredTransactions.map((t, index) => (
               <tr key={index}>
                 <td>{t.date ? new Date(t.date).toLocaleDateString() : "-"}</td>
