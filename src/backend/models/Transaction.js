@@ -1,16 +1,24 @@
-// models/Transaction.js
 const mongoose = require("mongoose");
 
 const transactionSchema = new mongoose.Schema({
   date: String,
   type: String,
   category: String,
-  name: String,           // for subscriptions
+  name: String,           
   description: String,
   amount: Number,
-  frequency: String,      // for house/subscriptions
+  frequency: String,     
   studentFinancePayments: Array,
-  userId: { type: String, required: true }, // ← user identifier
+  userId: { type: String, required: true },
+  
+  // Fields for budgeting/saving
+  period: {
+    type: String,
+    enum: ["weekly", "monthly"],
+  },
+  title: String,
+  startDate: String,
+  currentSaved: { type: Number, default: 0 },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Transaction", transactionSchema);

@@ -31,13 +31,12 @@ router.post("/transactions", async (req, res) => {
 // Get all transactions for a specific user
 router.get("/transactions", async (req, res) => {
   try {
-    const userId = req.query.userId; // pass from frontend
+    const userId = req.query.userId;
 
     if (!userId) {
       return res.status(400).json({ message: "userId is required" });
     }
 
-    // Only fetch transactions for this user
     const transactions = await Transaction.find({ userId }).sort({ createdAt: -1 });
     res.json(transactions);
   } catch (err) {
@@ -52,7 +51,6 @@ router.get("/transactions", async (req, res) => {
 router.delete("/transactions/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
     const deleted = await Transaction.findByIdAndDelete(id);
 
     if (!deleted) {
@@ -77,7 +75,7 @@ router.put("/transactions/:id", async (req, res) => {
     const updatedTransaction = await Transaction.findByIdAndUpdate(
       id,
       updatedData,
-      { new: true } // return the updated doc
+      { new: true }
     );
 
     if (!updatedTransaction) {
@@ -91,6 +89,24 @@ router.put("/transactions/:id", async (req, res) => {
   }
 });
 
+// Saving and Budgeting
+router.post("/", async (req, res) => {
+  try {
+    const transaction = await Transaction.create(req.body);
+    res.status(201).json(transaction);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
+/* GET all transactions */
+router.get("/", async (req, res) => {
+  try {
+    const transactions = await Transaction.find().sort({ createdAt: -1 });
+    res.json(transactions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-module.exports = router;
+module.exports = router;  

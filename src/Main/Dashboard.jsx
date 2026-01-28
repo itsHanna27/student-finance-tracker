@@ -291,13 +291,15 @@ const [userName, setUserName] = useState("");
           <p className="feature-text">Manage group expenses without stress.</p>
         </div>
 
-        <div className="feature-card">
-          <FaBullseye className="feature-icon" />
-          <h2 className="feature-title">Save for Goals</h2>
-          <p className="feature-text">
-            Set goals, track progress, and stay motivated.
-          </p>
-        </div>
+      <Link to="/account" state={{ activeTab: "budget" }} style={{ textDecoration: "none" }}>
+      <div className="feature-card">
+        <FaBullseye className="feature-icon" />
+        <h2 className="feature-title">Save for Goals</h2>
+        <p className="feature-text">
+          Set goals, track progress, and stay motivated.
+        </p>
+      </div>
+    </Link>
 
         <div className="feature-card">
           <FaUsers className="feature-icon" />

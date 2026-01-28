@@ -1,20 +1,108 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../Navbar/Navbar";
 import Sidebar from "../Navbar/Sidebar";
 import Friends from "./Friends";
 import AddFriends from "./addFriends";
 import FriendRequest from "./friendrequest";
 import BudgetandSaving from "./BudgetandSaving";
+import Transactions from "./Transactions";
 import "../css/Account.css";
+
+const ProfileSection = ({ user, avatar, setFile }) => {
+  return (
+    <>
+      <h3 style={{ color: "#A78BFA", fontSize: "18px" }}>Profile</h3>
+      <div className="profile-header">
+        <div className="avatar">
+          {avatar ? (
+            <img
+              src={avatar}
+              alt="Avatar"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "50%",
+              }}
+            />
+          ) : (
+            user.name?.charAt(0).toUpperCase()
+          )}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            id="avatarUpload"
+            onChange={(e) => setFile(e.target.files[0])}
+          />
+          <button
+            className="upload-btn"
+            onClick={() =>
+              document.getElementById("avatarUpload").click()
+            }
+          >
+            Upload new picture
+          </button>
+        </div>
+      </div>
+
+      <div className="profile-info">
+        <div>
+          <span>Email</span>
+          <p>{user.email}</p>
+        </div>
+        <div>
+          <span>Name</span>
+          <p>{user.name}</p>
+        </div>
+        <div>
+          <span>Surname</span>
+          <p>{user.surname}</p>
+        </div>
+        <div>
+          <span>User ID</span>
+          <p>{user.id}</p>
+           <button
+                      className="copy-btn"
+                      style={{
+                        borderRadius: "30px",
+                        border: "none",
+                        background: "#5d6079ff",
+                        width: "60px",
+                        height: "25px",
+                        alignSelf: "center",
+                      }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(user.id);
+                        alert("ID copied");
+                      }}
+                    >
+                      copy
+                    </button>
+        </div>
+      </div>
+    </>
+  );
+};
 
 const Account = () => {
   const navigate = useNavigate();
-
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [file, setFile] = useState(null);
   const [avatar, setAvatar] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
+
+  // Check if navigated with a specific tab to open
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -105,112 +193,18 @@ const Account = () => {
 
           <div className="account-card">
             {activeTab === "profile" && (
-              <>
-                <h3 style={{ color: "#A78BFA", fontSize: "18px" }}>Profile</h3>
-
-                <div className="profile-header">
-                  <div className="avatar">
-                    {avatar ? (
-                      <img
-                        src={avatar}
-                        alt="Avatar"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          borderRadius: "50%",
-                        }}
-                      />
-                    ) : (
-                      user.name?.charAt(0).toUpperCase()
-                    )}
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      id="avatarUpload"
-                      onChange={(e) => setFile(e.target.files[0])}
-                    />
-
-                    <button
-                      className="upload-btn"
-                      onClick={() =>
-                        document.getElementById("avatarUpload").click()
-                      }
-                    >
-                      Upload new picture
-                    </button>
-
-                    <button
-                  className="remove-btn"
-                  onClick={async () => {
-                    try {
-                      const res = await fetch("http://localhost:5000/remove-avatar", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ userId: user.id }),
-                      });
-
-                      if (!res.ok) throw new Error("Remove failed");
-
-                      const data = await res.json();
-
-                      setAvatar("");
-                      const updatedUser = { ...user, avatar: "" };
-                      setUser(updatedUser);
-                      localStorage.setItem("user", JSON.stringify(updatedUser));
-                    } catch (err) {
-                      console.error("Failed to remove avatar:", err);
-                    }
-                  }}
-                >
-                  Remove
-                </button>
-
-                  </div>
-                </div>
-
-                <div className="profile-info">
-                  <div>
-                    <span>Email</span>
-                    <p>{user.email}</p>
-                  </div>
-                  <div>
-                    <span>Name</span>
-                    <p>{user.name}</p>
-                  </div>
-                  <div>
-                    <span>Surname</span>
-                    <p>{user.surname}</p>
-                  </div>
-                  <div>
-                    <span>User ID</span>
-                    <p>{user.id}</p>
-                    <button
-                  className="copy-btn"
-                  style={{ borderRadius: "30px", border: "none", background: "#5d6079ff", width: "60px", height: "25px", alignSelf: "center" }}
-                  onClick={() => {
-                    navigator.clipboard.writeText(user.id);
-                    alert("ID copied");
-                  }}
-                >
-                  
-                  copy
-                </button>
-                  </div>
-                </div>
-              </>
+              <ProfileSection user={user} avatar={avatar} setFile={setFile} />
             )}
 
             {activeTab === "friends" && <Friends />}
             {activeTab === "addFriends" && <AddFriends />}
             {activeTab === "friendrequest" && <FriendRequest />}
-            {activeTab === "budget" && <BudgetandSaving />}
-
-
+            {activeTab === "budget" && (
+              <BudgetandSaving setActiveTab={setActiveTab} />
+            )}
+            {activeTab === "transactions" && (
+              <Transactions setActiveTab={setActiveTab} />
+            )}
           </div>
         </div>
       </div>
