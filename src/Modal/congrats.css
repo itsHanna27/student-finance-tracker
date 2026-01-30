@@ -1,0 +1,245 @@
+.congrats-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.congrats-modal {
+  background: linear-gradient(135deg, #050210 0%, #071131 100%);
+  border-radius: 24px;
+  padding: 40px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  border: 2px solid #A78BFA;
+  box-shadow: 0 20px 60px rgba(167, 139, 250, 0.3);
+  animation: slideUp 0.5s ease;
+}
+
+.congrats-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.congrats-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.trophy-icon {
+  font-size: 80px;
+  color: #FFD700;
+  margin-bottom: 20px;
+  animation: bounce 1s infinite;
+}
+
+.congrats-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #A78BFA;
+  margin-bottom: 15px;
+}
+
+.congrats-message {
+  font-size: 18px;
+  color: #b8b8b8;
+  margin-bottom: 10px;
+}
+
+.congrats-amount {
+  font-size: 48px;
+  font-weight: 700;
+  color: #F5A6FF;
+  margin: 20px 0;
+  text-shadow: 0 0 20px rgba(245, 166, 255, 0.5);
+}
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #FF6B6B, #FFD93D);
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 20px 0;
+  animation: pulse 2s infinite;
+}
+
+.streak-icon {
+  font-size: 20px;
+  animation: flicker 1.5s infinite;
+}
+
+.achievement-unlocked {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(167, 139, 250, 0.2);
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 1px solid #A78BFA;
+  margin: 15px 0;
+  font-size: 14px;
+  color: #A78BFA;
+  font-weight: 600;
+}
+
+.star-icon {
+  color: #FFD700;
+  animation: sparkle 1s infinite;
+}
+
+.congrats-subtext {
+  font-size: 14px;
+  color: #888;
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+.congrats-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.congrats-btn {
+  background: linear-gradient(135deg, #A78BFA, #F5A6FF);
+  border: none;
+  padding: 14px 40px;
+  border-radius: 30px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.congrats-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(167, 139, 250, 0.4);
+}
+
+.congrats-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #A78BFA;
+  padding: 14px 40px;
+  border-radius: 30px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.congrats-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Confetti Animation */
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: fall 3s linear forwards;
+  opacity: 0.8;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(600px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+@keyframes flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}

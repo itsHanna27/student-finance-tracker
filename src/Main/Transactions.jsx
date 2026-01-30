@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaSearch, FaPlus, FaEdit, FaFilter, FaCreditCard } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaFilter, FaCreditCard, FaExclamationTriangle } from "react-icons/fa";
 import Navbar from "../Navbar/Navbar";
 import "../css/Transaction.css";
 
@@ -10,6 +10,7 @@ import AddBudget from "../Modal/addBudget";
 import Withdraw from "../Modal/withdraw";
 import EditTransaction from "../Modal/editTransaction";
 import AddTransaction from "../Modal/AddTransaction";
+import Congrats from "../Modal/congrats";
 
 import {
   ResponsiveContainer,
@@ -31,20 +32,148 @@ const Transactions = ({ setActiveTab }) => {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
   const [currentEditTransaction, setCurrentEditTransaction] = useState(null);
+  const [showCongratsModal, setShowCongratsModal] = useState(false);
+  const [congratsData, setCongratsData] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const navigate = useNavigate();
 
-  const [savingGoal, setSavingGoal] = useState(null);
+  const [savingGoals, setSavingGoals] = useState({ weekly: null, monthly: null });
+  const [budgetGoals, setBudgetGoals] = useState({ weekly: null, monthly: null });
+  const [goalView, setGoalView] = useState("saving"); // "saving" or "budgeting"
+  const [periodFilter, setPeriodFilter] = useState("weekly"); // "weekly" or "monthly"
   const [balance, setBalance] = useState(0);
   const [isLoadingGoal, setIsLoadingGoal] = useState(true);
-  const goalSaved = savingGoal?.currentSaved || 0;
-  const progress = savingGoal ? (goalSaved / savingGoal.amount) * 100 : 0;
+  const [showBudgetAlert, setShowBudgetAlert] = useState(false);
 
   const [transactions, setTransactions] = useState([]);
+  const [dismissedBudgetAlerts, setDismissedBudgetAlerts] = useState({});
+const [budgetAlertData, setBudgetAlertData] = useState(null);
 
-  // Function to fetch saving goal
+  const currentGoal = goalView === "saving" 
+    ? savingGoals[periodFilter]
+    : budgetGoals[periodFilter];
+  
+  // For budgeting: calculate spent from transactions
+  // For saving: use currentSaved
+  const calculateBudgetSpent = () => {
+    if (goalView !== "budgeting" || !currentGoal) return 0;
+    
+    const startDate = new Date(currentGoal.startDate);
+    const today = new Date();
+    
+    // Calculate period end date based on weekly/monthly
+    const periodDays = currentGoal.period === "weekly" ? 7 : 30;
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + periodDays);
+    
+    // Sum up expenses from transactions within the budget period
+    const spent = transactions
+      .filter(t => {
+        // Exclude saving and budget types
+        if (t.type === "saving" || t.type === "budget") return false;
+        
+        // Only count expenses (negative amounts)
+        if (t.amount >= 0) return false;
+        
+        // Check if transaction is within budget period
+        const transactionDate = new Date(t.date);
+        return transactionDate >= startDate && transactionDate <= endDate;
+      })
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    
+    return spent;
+  };
+  
+  // Cap the displayed amount at goal amount
+  const goalSaved = goalView === "saving" 
+    ? Math.min(currentGoal?.currentSaved || 0, currentGoal?.amount || 0)
+    : Math.min(calculateBudgetSpent(), currentGoal?.amount || 0);
+    
+  const progress = currentGoal ? (goalSaved / currentGoal.amount) * 100 : 0;
+  const actualProgress = goalView === "saving"
+    ? (currentGoal?.currentSaved || 0)
+    : calculateBudgetSpent();
+
+  // Check if goal is reached (for congratulations modal)
+  const checkGoalReached = () => {
+  if (goalView !== "saving") return;
+
+  if (!currentGoal || currentGoal.congratsShown) return;
+
+  const isGoalReached = currentGoal.currentSaved >= currentGoal.amount;
+
+  if (isGoalReached) {
+    setCongratsData({
+      goalAmount: currentGoal.amount,
+      period: periodFilter,
+      streak: currentGoal.streak || 1
+    });
+    setShowCongratsModal(true);
+
+    markCongratsAsShown(currentGoal._id);
+  }
+};
+
+
+  const checkBudgetWarning = () => {
+  if (goalView !== "budgeting" || !currentGoal) return;
+
+  const spent = calculateBudgetSpent();
+  const percentSpent = (spent / currentGoal.amount) * 100;
+
+  if (
+    percentSpent >= 80 &&
+    percentSpent < 100 &&
+    !currentGoal.alertShown &&
+    !dismissedBudgetAlerts[currentGoal._id] &&
+    !budgetAlertData
+  ) {
+    // Capture alert info once
+    setBudgetAlertData({
+      goalId: currentGoal._id,
+      period: periodFilter,
+      remaining: Math.max(0, currentGoal.amount - spent),
+    });
+
+    setShowBudgetAlert(true);
+    markBudgetAlertShown(currentGoal._id);
+  }
+};
+
+
+  const markCongratsAsShown = async (goalId) => {
+    try {
+      await fetch(`http://localhost:5000/transactions/${goalId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ congratsShown: true }),
+      });
+    } catch (err) {
+      console.error("Failed to mark congrats as shown:", err);
+    }
+  };
+
+  const markBudgetAlertShown = async (goalId) => {
+    try {
+      await fetch(`http://localhost:5000/transactions/${goalId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alertShown: true }),
+      });
+    } catch (err) {
+      console.error("Failed to mark alert as shown:", err);
+    }
+  };
+
+  // Check goal status when data changes
+  useEffect(() => {
+    checkGoalReached();
+    checkBudgetWarning();
+  }, [currentGoal, transactions, goalView]);
+
+  // Function to fetch saving goals and budgets
   const fetchSavingGoal = async () => {
     try {
       setIsLoadingGoal(true);
@@ -54,21 +183,30 @@ const Transactions = ({ setActiveTab }) => {
       const res = await fetch(`http://localhost:5000/transactions?userId=${currentUser.id}`);
       const data = await res.json();
       
-      console.log("All transactions:", data); // Debug log
-      console.log("Looking for type === 'saving'");
+      console.log("All transactions:", data);
       
-      // Check what types exist
-      data.forEach((t, i) => {
-        console.log(`Transaction ${i}: type = "${t.type}"`);
-      });
+      // Find all saving and budget goals
+      const allSavings = data.filter((t) => t.type === "saving");
+      const allBudgets = data.filter((t) => t.type === "budget");
       
-      // Find the saving goal
-      const goal = data.find((t) => t.type === "saving");
-      console.log("Found saving goal:", goal); // Debug log
+      // Organize by period
+      const savingsByPeriod = {
+        weekly: allSavings.find(s => s.period === "weekly") || null,
+        monthly: allSavings.find(s => s.period === "monthly") || null,
+      };
       
-      setSavingGoal(goal);
+      const budgetsByPeriod = {
+        weekly: allBudgets.find(b => b.period === "weekly") || null,
+        monthly: allBudgets.find(b => b.period === "monthly") || null,
+      };
+      
+      console.log("Saving goals by period:", savingsByPeriod);
+      console.log("Budgets by period:", budgetsByPeriod);
+      
+      setSavingGoals(savingsByPeriod);
+      setBudgetGoals(budgetsByPeriod);
     } catch (err) {
-      console.error("Failed to fetch saving goal:", err);
+      console.error("Failed to fetch goals:", err);
     } finally {
       setIsLoadingGoal(false);
     }
@@ -236,6 +374,27 @@ const Transactions = ({ setActiveTab }) => {
             View and manage all your recent income and expenses in one place.
           </p>
 
+          {/* Budget Alert */}
+         {showBudgetAlert && budgetAlertData && (
+      <div className="budget-alert">
+        <FaExclamationTriangle className="alert-icon" />
+        <span>
+          Warning! You've used more than 80% of your {budgetAlertData.period} budget. Only £{budgetAlertData.remaining.toFixed(2)} remaining.
+        </span>
+        <button
+          onClick={() => {
+            setShowBudgetAlert(false);
+            setDismissedBudgetAlerts(prev => ({ ...prev, [budgetAlertData.goalId]: true }));
+            setBudgetAlertData(null);
+          }}
+        >
+          ✕
+        </button>
+      </div>
+    )}
+
+
+
           <div className="overview-container">
             {/* Current Balance */}
             <div className="small-card balance-card">
@@ -244,89 +403,134 @@ const Transactions = ({ setActiveTab }) => {
               <p className="card-number">XXXX XXXX XXXX XXXX 3456</p>
             </div>
 
-            {/* Saving Goal */}
+            {/* Saving/Budget Goal */}
             <div style={{ width: "85vh" }} className="small-card goal-card">
-              <div className="goal-tag">
-                {savingGoal ? savingGoal.period : "Monthly"}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div 
+                  className="goal-tag"
+                  onClick={() => setPeriodFilter(periodFilter === "weekly" ? "monthly" : "weekly")}
+                >
+                  {periodFilter === "weekly" ? "Weekly" : "Monthly"}
+                </div>
+
+                <div className="goal-toggle">
+                  <button
+                    className={`toggle-btn ${goalView === "budgeting" ? "active" : ""}`}
+                    onClick={() => setGoalView("budgeting")}
+                  >
+                    Budgeting
+                  </button>
+                  <button
+                    className={`toggle-btn ${goalView === "saving" ? "active" : ""}`}
+                    onClick={() => setGoalView("saving")}
+                  >
+                    Saving
+                  </button>
+                </div>
               </div>
 
-              <h3>Saving Goal</h3>
+              <h3>{goalView === "saving" ? "Saving Goal" : "Budget"}</h3>
 
               <p className="goal-sub">
-                {savingGoal
-                  ? savingGoal.title || `Save £${savingGoal.amount}`
-                  : "No saving goal set yet"}
+                {currentGoal
+                  ? currentGoal.title || `${goalView === "saving" ? "Save" : "Budget"} £${currentGoal.amount}`
+                  : `No ${periodFilter} ${goalView} goal set yet`}
               </p>
 
               <div className="progress-row">
-                <span>Progress</span>
+                <span>{goalView === "saving" ? "Progress" : "Spent"}</span>
                 <span>
-                  £{goalSaved.toFixed(0)}/£{savingGoal ? savingGoal.amount : 0}
+                  £{goalSaved.toFixed(2)}/£{currentGoal ? currentGoal.amount : 0}
                 </span>
               </div>
 
               <div className="progress-bar">
                 <div
                   className="progress-fill"
-                  style={{ width: savingGoal ? `${progress}%` : "0%" }}
+                  style={{ 
+                    width: currentGoal ? `${Math.min(progress, 100)}%` : "0%",
+                  }}
                 />
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <button
-                  className="goal-btn"
-                  onClick={() => {
-                    console.log("Button clicked, savingGoal:", savingGoal); // Debug
-                    if (savingGoal) {
-                      console.log("Opening modal with goal:", savingGoal); // Debug
-                      setIsAddBudgetOpen(true);
-                    } else {
-                      console.log("No goal, navigating to create"); // Debug
-                      // Check if we're in Account component (setActiveTab exists)
-                      if (setActiveTab && typeof setActiveTab === "function") {
-                        setActiveTab("budget");
-                      } else {
-                        // Navigate to Account page with budget tab
-                        navigate("/account", { state: { activeTab: "budget" } });
-                      }
-                    }
-                  }}
-                >
-                  {savingGoal ? "Add to goal" : "Create goal"}
-                </button>
-
-                {savingGoal && (
+              {goalView === "saving" ? (
+                // Saving view: show Add/Withdraw buttons
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <button
-                    className="withdraw-btn"
-                    onClick={() => setIsWithdrawOpen(true)}
+                    className="goal-btn"
+                    onClick={() => {
+                      if (currentGoal) {
+                        setIsAddBudgetOpen(true);
+                      } else {
+                        if (setActiveTab && typeof setActiveTab === "function") {
+                          setActiveTab("budget");
+                        } else {
+                          navigate("/account", { state: { activeTab: "budget" } });
+                        }
+                      }
+                    }}
                   >
-                    Withdraw Amount
+                    {currentGoal ? "Add to goal" : "Create goal"}
                   </button>
-                )}
-              </div>
+
+                  {currentGoal && (
+                    <button
+                      className="withdraw-btn"
+                      onClick={() => setIsWithdrawOpen(true)}
+                    >
+                      Withdraw Amount
+                    </button>
+                  )}
+                </div>
+              ) : (
+                // Budget view: show create budget button or just info
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  {!currentGoal && (
+                    <button
+                      className="goal-btn"
+                      onClick={() => {
+                        if (setActiveTab && typeof setActiveTab === "function") {
+                          setActiveTab("budget");
+                        } else {
+                          navigate("/account", { state: { activeTab: "budget" } });
+                        }
+                      }}
+                    >
+                      Create budget
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Modals */}
-           {isAddBudgetOpen && savingGoal && (
-            <AddBudget
-              savingGoal={savingGoal}
-              onUpdate={fetchSavingGoal}
-              onClose={() => {
-                setIsAddBudgetOpen(false);
-                fetchSavingGoal();
-              }}
-            />
-          )}
-            {isWithdrawOpen && savingGoal && (
-              <Withdraw
-                savingGoal={savingGoal}
-                onUpdate={fetchSavingGoal}
-                onClose={() => {
-                  setIsWithdrawOpen(false);
-                  fetchSavingGoal();
-                }}
-              />
-            )}
+          
+           {/* Modals */}
+              {isAddBudgetOpen && currentGoal && (
+                <AddBudget
+                  savingGoal={currentGoal}
+                  onUpdate={fetchSavingGoal}
+                  onClose={() => {
+                    setIsAddBudgetOpen(false);
+                    fetchSavingGoal();
+                  }}
+                />
+              )}
+              {isWithdrawOpen && currentGoal && (
+                <Withdraw
+                  savingGoal={currentGoal}
+                  onUpdate={fetchSavingGoal}
+                  onClose={() => {
+                    setIsWithdrawOpen(false);
+                    fetchSavingGoal();
+                  }}
+                />
+              )}
 
             {isEditTransactionOpen && currentEditTransaction && (
               <EditTransaction
@@ -343,6 +547,26 @@ const Transactions = ({ setActiveTab }) => {
                 onAddTransaction={handleAddTransaction}
                 setTransactions={setTransactions}
                 setShowEdit={setIsEditTransactionOpen}
+              />
+            )}
+
+            {/* Congratulations Modal */}
+            {showCongratsModal && congratsData && (
+              <Congrats
+                {...congratsData}
+                onClose={() => {
+                  setShowCongratsModal(false);
+                  setCongratsData(null);
+                }}
+                onCreateNew={() => {
+                  setShowCongratsModal(false);
+                  setCongratsData(null);
+                  if (setActiveTab && typeof setActiveTab === "function") {
+                    setActiveTab("budget");
+                  } else {
+                    navigate("/account", { state: { activeTab: "budget" } });
+                  }
+                }}
               />
             )}
 
@@ -578,12 +802,6 @@ const Transactions = ({ setActiveTab }) => {
           background: linear-gradient(100deg, #111827, #0F0F1A);
           z-index: -1;
         }
-          .progress-fill {
-            will-change: width;
-            transition: width 0.7s linear;
-          }
-          .balance-amount {
-            will-change: contents;
           }
         `}</style>
 

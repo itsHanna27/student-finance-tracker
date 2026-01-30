@@ -180,3 +180,140 @@
   filter: invert(1);
   cursor: pointer;
 }
+/* Goal Summary Card - Main Container */
+.goal-summary-card {
+  background: linear-gradient(145deg, rgba(27, 19, 47, 0.05), rgba(12, 2, 43, 0.1));
+  border: 2px solid #9370f5;
+  border-radius: 20px;
+  padding: 30px;
+}
+
+/* Amount Display Section */
+.goal-amount-section {
+  text-align: center;
+  padding: 20px;;
+  border-radius: 15px;
+  margin-bottom: 25px;
+  border: 2px solid #9370f5;
+}
+
+.currency-symbol {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  margin-right: 5px;
+}
+
+.amount-large {
+  font-size: 48px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -1px;
+}
+
+/* Info Grid Layout */
+.goal-info-grid {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Individual Info Cards */
+.info-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px;
+  background: rgba(147, 112, 245, 0.08);
+  border: 1px solid rgba(147, 112, 245, 0.3);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  background: rgba(147, 112, 245, 0.15);
+  border-color: #9370f5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(147, 112, 245, 0.2);
+}
+
+.info-card.highlight {
+  background: rgba(147, 112, 245, 0.15);
+  border: 2px solid #9370f5;
+}
+
+.info-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  color: #9370f5;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(147, 112, 245, 0.15);
+  border-radius: 10px;
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 18px;
+  color: #fff;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.btn-edit,
+.btn-delete {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #9370f5, #7c5ce0);
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #4a2ca3;
+}
+
+.btn-delete {
+  background: #01041E;
+  border: solid 1px #9370f5;
+  color: white;
+}
+
+.btn-delete:hover {
+background: #23285431;
+}

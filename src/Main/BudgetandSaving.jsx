@@ -1,39 +1,91 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import "../css/BudgetandSaving.css";
+import { FaClock } from "react-icons/fa";
 
 const BudgetandSaving = ({ setActiveTab = () => {} }) => {
-  const navigate = useNavigate();
+  const [mode, setMode] = useState("saving"); // saving | budget
+  const [period, setPeriod] = useState("weekly");
   const [title, setTitle] = useState("");
   const [startDate, setStartDate] = useState("");
-  const [mode, setMode] = useState("saving"); // budget | saving
-  const [period, setPeriod] = useState("weekly");
   const [amountDigits, setAmountDigits] = useState("");
 
+  const [existingGoal, setExistingGoal] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  // ---------- FORMAT ----------
   const formatDisplay = () => {
     if (!amountDigits) return "0.00";
-    const num = parseFloat(amountDigits) / 100;
-    return num.toFixed(2);
+    return (parseFloat(amountDigits) / 100).toFixed(2);
   };
 
   const handleAmountChange = (e) => {
     let value = e.target.value.replace(/\D/g, "");
-    // Limit to avoid huge numbers
     if (value.length > 10) value = value.slice(0, 10);
     setAmountDigits(value);
   };
 
+  // ---------- FETCH GOAL ----------
+  useEffect(() => {
+    const fetchGoal = async () => {
+      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+      if (!currentUser.id) return;
+
+      try {
+        const res = await fetch(
+          `http://localhost:5000/transactions?userId=${currentUser.id}`
+        );
+        const data = await res.json();
+
+        const goal = data.find((t) => t.type === mode && t.period === period);
+
+        if (goal) {
+          setExistingGoal({
+            _id: goal._id,
+            type: goal.type,
+            period: goal.period,
+            title: goal.title || "",
+            startDate: goal.startDate || "",
+            amount: goal.amount || 0,
+          });
+        } else {
+          setExistingGoal(null);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchGoal();
+  }, [mode, period]);
+
+  // ---------- PREFILL WHEN EDIT ----------
+  useEffect(() => {
+    if (isEditing && existingGoal) {
+      setTitle(existingGoal.title || "");
+      setStartDate(existingGoal.startDate || "");
+      setAmountDigits(
+        existingGoal.amount ? Math.round(existingGoal.amount * 100).toString() : ""
+      );
+    } else if (!isEditing) {
+      setTitle("");
+      setStartDate("");
+      setAmountDigits("");
+    }
+  }, [isEditing, existingGoal]);
+
+  // ---------- SAVE ----------
   const handleSave = async () => {
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-    
     if (!currentUser.id) {
-      alert("User not found. Please log in again.");
+      alert("User not found");
       return;
     }
 
     const payload = {
       userId: currentUser.id,
-      type: mode,
+      type: mode, // ← use mode here
       period,
       amount: parseFloat(amountDigits) / 100,
       title,
@@ -42,60 +94,233 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/transactions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const url =
+        existingGoal && isEditing
+          ? `http://localhost:5000/transactions/${existingGoal._id}`
+          : "http://localhost:5000/transactions";
+
+      const method = existingGoal && isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error("Backend error:", errorData);
-        throw new Error(errorData.message || "Failed to save");
-      }
+      if (!res.ok) throw new Error("Failed to save");
 
-      // Reset form
-      setAmountDigits("");
+      const savedTransaction = await res.json();
+
+      setIsEditing(false);
+      setExistingGoal(savedTransaction); // Use real MongoDB _id
       setTitle("");
       setStartDate("");
-      setMode("saving");
-      setPeriod("weekly");
-
-      alert(mode === "budget" ? "Budget saved successfully!" : "Goal saved successfully!");
-
-      // Navigate to the Transactions page (not the tab)
-      navigate("/transactions");
+      setAmountDigits("");
     } catch (err) {
       console.error(err);
-      alert("Failed to save. Please try again.");
+      alert("Failed to save. Make sure all fields are correct.");
     }
   };
 
+  // ---------- DELETE ----------
+  const handleDelete = async () => {
+    if (!existingGoal) return;
+
+    try {
+      await fetch(`http://localhost:5000/transactions/${existingGoal._id}`, {
+        method: "DELETE",
+      });
+
+      setExistingGoal(null);
+      setIsEditing(false);
+      setTitle("");
+      setStartDate("");
+      setAmountDigits("");
+    } catch (err) {
+      alert("Failed to delete");
+    }
+  };
+
+  // ---------- CLEAR ----------
   const handleClear = () => {
-    setAmountDigits("");
     setTitle("");
     setStartDate("");
+    setAmountDigits("");
     setMode("saving");
     setPeriod("weekly");
   };
 
+  // ---------- DATE HELPERS ----------
+  const getDaysLeft = (startDate, period) => {
+    if (!startDate) return null;
+    const start = new Date(startDate);
+    const now = new Date();
+    const maxDays = period === "weekly" ? 7 : 30;
+    const diffInMs = start.getTime() + maxDays * 24 * 60 * 60 * 1000 - now.getTime();
+    const daysLeft = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+    return Math.max(0, Math.min(daysLeft, maxDays));
+  };
+
+  // ---------- MIN & MAX DATE ----------
+const getMinDate = (period) => {
+  const today = new Date();
+  const minDate = new Date(today);
+
+  if (period === "weekly") {
+    minDate.setDate(today.getDate() - 6); // 6 days ago
+  } else if (period === "monthly") {
+    minDate.setDate(today.getDate() - 30); // 30 days ago
+  }
+
+  return minDate.toISOString().split("T")[0];
+};
+
+const getMaxDate = (period) => {
+  const today = new Date();
+  const maxDate = new Date(today);
+
+  if (period === "weekly") {
+    maxDate.setDate(today.getDate() + 6); // 6 days in the future
+  } else if (period === "monthly") {
+    maxDate.setMonth(today.getMonth() + 1); // end of next month
+    maxDate.setDate(0); // last day of this month
+  }
+
+  return maxDate.toISOString().split("T")[0];
+};
+
+
+
+  // ===================== VIEW MODE ======================
+  if (existingGoal && !isEditing) {
+    return (
+      <div className="budget-card">
+        <div className="budget-header">
+          <h2 className="budget-title">
+            {mode === "budget" ? "Your budget" : "Your saving goal"}
+          </h2>
+          <div className="mode-toggle">
+            <button
+              className={mode === "budget" ? "active" : ""}
+              onClick={() => setMode("budget")}
+            >
+              Budgeting
+            </button>
+            <button
+              className={mode === "saving" ? "active" : ""}
+              onClick={() => setMode("saving")}
+            >
+              Saving
+            </button>
+          </div>
+        </div>
+
+        <div className="period-toggle">
+          <button
+            className={period === "weekly" ? "active" : ""}
+            onClick={() => setPeriod("weekly")}
+          >
+            Weekly
+          </button>
+          <button
+            className={period === "monthly" ? "active" : ""}
+            onClick={() => setPeriod("monthly")}
+          >
+            Monthly
+          </button>
+        </div>
+
+        <div className="goal-summary-card">
+          <div className="goal-amount-section">
+            <span className="currency-symbol">£</span>
+            <span className="amount-large">{existingGoal.amount.toFixed(2)}</span>
+          </div>
+
+          <div className="goal-info-grid">
+            <div className="info-card">
+              <div className="info-icon">
+                <i className="fas fa-calendar-alt"></i>
+              </div>
+              <div className="info-content">
+                <div className="info-label">Period</div>
+                <div className="info-value">{existingGoal.period}</div>
+              </div>
+            </div>
+
+            {existingGoal.title && (
+              <div className="info-card">
+                <div className="info-icon">
+                  <i className="fas fa-tag"></i>
+                </div>
+                <div className="info-content">
+                  <div className="info-label">Title</div>
+                  <div className="info-value">{existingGoal.title}</div>
+                </div>
+              </div>
+            )}
+
+            {existingGoal.startDate && (
+              <div className="info-card">
+                <div className="info-icon">
+                  <FaClock />
+                </div>
+                <div className="info-content">
+                  <div className="info-label">
+                    {existingGoal.period === "weekly"
+                      ? "Days left this week"
+                      : "Days left this month"}
+                  </div>
+                  <div className="info-value">
+                    {getDaysLeft(existingGoal.startDate, existingGoal.period)}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="action-buttons">
+          <button className="btn-edit" onClick={() => setIsEditing(true)}>
+            <i className="fas fa-edit"></i>
+            Edit Goal
+          </button>
+          <button className="btn-delete" onClick={handleDelete}>
+            <i className="fas fa-trash-alt"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== FORM MODE ======================
   return (
     <div className="budget-card">
       <div className="budget-header">
-        <div className="budget-title-group">
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", position: "relative" }}>
+          {isEditing && (
+            <span
+              style={{
+                cursor: "pointer",
+                fontSize: "30px",
+                fontWeight: "600",
+                color: "#ffffff",
+                position: "absolute",
+                bottom: "65px",
+                left: "-30px",
+              }}
+              onClick={() => setIsEditing(false)}
+              onMouseEnter={(e) => (e.target.style.color = "#333")}
+              onMouseLeave={(e) => (e.target.style.color = "#ffffff")}
+            >
+              ←
+            </span>
+          )}
           <h2 className="budget-title">
             {mode === "budget" ? "Set your budget" : "Set your saving goal"}
           </h2>
-          {mode === "budget" && (
-            <p className="budget-sub">
-              Note that your bills will not contribute to your budget
-            </p>
-          )}
         </div>
 
-        {/* Budget / Saving toggle */}
         <div className="mode-toggle">
           <button
             className={mode === "budget" ? "active" : ""}
@@ -112,52 +337,29 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
         </div>
       </div>
 
-      {/* Weekly / Monthly */}
       <div className="period-toggle">
-        <button
-          className={period === "weekly" ? "active" : ""}
-          onClick={() => setPeriod("weekly")}
-        >
+        <button className={period === "weekly" ? "active" : ""} onClick={() => setPeriod("weekly")}>
           Weekly
         </button>
-        <button
-          className={period === "monthly" ? "active" : ""}
-          onClick={() => setPeriod("monthly")}
-        >
+        <button className={period === "monthly" ? "active" : ""} onClick={() => setPeriod("monthly")}>
           Monthly
         </button>
       </div>
 
-      <label>
-        {mode === "budget" ? "Total budget amount (£)" : "Saving goal amount (£)"}
-      </label>
-      <input
-        type="text"
-        value={formatDisplay()}
-        onChange={handleAmountChange}
-        placeholder="0.00"
-      />
+      <label>{mode === "budget" ? "Total budget amount (£)" : "Saving goal amount (£)"}</label>
+      <input type="text" value={formatDisplay()} onChange={handleAmountChange} placeholder="0.00" />
 
       <label>Title (Optional)</label>
-      <input
-        type="text"
-        placeholder={mode === "budget" ? "e.g Weekly budget" : "e.g Saving for Paris trip"}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
+      <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
 
       <label>Start Date</label>
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-      />
+      <input type="date" value={startDate}  min={getMinDate(period)} max={getMaxDate(period)} onChange={(e) => setStartDate(e.target.value)}/>
+
 
       <div className="budget-actions">
         <button className="save-btn" onClick={handleSave}>
-          {mode === "budget" ? "Save Budget" : "Save Goal"}
+          {isEditing ? "Update" : "Save"}
         </button>
-
         <button className="clear-btn" onClick={handleClear}>
           Clear
         </button>

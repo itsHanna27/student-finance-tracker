@@ -381,3 +381,83 @@
   background: #8b5cf6;
 }
 
+.goal-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 4px;
+  position: absolute;
+  right: 10px;
+  top:10px;
+}
+
+.toggle-btn {
+  border: none;
+  background: transparent;
+  color: #c4b5fd;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: white;
+  font-weight: 600;
+}
+
+  .progress-fill {
+            will-change: width;
+            transition: width 0.7s linear;
+          }
+          .balance-amount {
+            will-change: contents;
+          }
+          
+          .budget-alert {
+            background: linear-gradient(135deg, #1a065c, #0f0433);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            max-width: 800px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+          }
+          
+          .budget-alert .alert-icon {
+            font-size: 24px;
+            color: white;
+          }
+          
+          .budget-alert button {
+            margin-left: auto;
+            background: rgba(23, 68, 202, 0.091);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+          }
+          
+          .budget-alert button:hover {
+            background: rgba(255, 255, 255, 0.3);
+          }
+          
+          @keyframes slideDown {
+            from {
+              transform: translateY(-20px);
+              opacity: 0;
+            }
+            to {
+              transform: translateY(0);
+              opacity: 1;
+            }
+          }
+
