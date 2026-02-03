@@ -1,6 +1,33 @@
 const express = require("express");
 const router = express.Router();
 const Transaction = require("../models/Transaction");
+const Balance = require("../models/Balance");
+
+
+const recalculateUserBalance = async (userId) => {
+  try {
+    // Get all transactions for this user (excluding saving and budget types)
+    const transactions = await Transaction.find({ 
+      userId,
+      type: { $nin: ['saving', 'budget', 'house'] } // Excluding house budget and saving from transactions
+    });
+    
+    // Sum all transaction amounts
+    const totalBalance = transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+    
+    // Update the balance in the Balance collection
+    await Balance.findOneAndUpdate(
+      { userId },
+      { balance: totalBalance },
+      { new: true, upsert: true }
+    );
+    
+    return totalBalance;
+  } catch (err) {
+    console.error("Error recalculating balance:", err);
+    throw err;
+  }
+};
 
 // ====================
 // Add a transaction
@@ -20,6 +47,9 @@ router.post("/transactions", async (req, res) => {
     // Save transaction
     const transaction = new Transaction(data);
     await transaction.save();
+
+    // ✅ Recalculate balance after creating transaction
+    await recalculateUserBalance(data.userId);
 
     res.status(201).json(transaction);
   } catch (err) {
@@ -51,11 +81,21 @@ router.get("/transactions", async (req, res) => {
 router.delete("/transactions/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Transaction.findByIdAndDelete(id);
-
-    if (!deleted) {
+    
+    // ✅ Get transaction first to get userId
+    const transaction = await Transaction.findById(id);
+    
+    if (!transaction) {
       return res.status(404).json({ message: "Transaction not found" });
     }
+
+    const userId = transaction.userId;
+    
+    // Delete the transaction
+    await Transaction.findByIdAndDelete(id);
+
+    // ✅ Recalculate balance after deleting
+    await recalculateUserBalance(userId);
 
     res.json({ message: "Transaction deleted successfully" });
   } catch (err) {
@@ -82,6 +122,9 @@ router.put("/transactions/:id", async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
+    // ✅ Recalculate balance after updating
+    await recalculateUserBalance(updatedTransaction.userId);
+
     res.json(updatedTransaction);
   } catch (err) {
     console.error("Error updating transaction:", err);
@@ -93,6 +136,12 @@ router.put("/transactions/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const transaction = await Transaction.create(req.body);
+    
+    // ✅ Recalculate balance if userId exists
+    if (req.body.userId) {
+      await recalculateUserBalance(req.body.userId);
+    }
+    
     res.status(201).json(transaction);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -109,4 +158,4 @@ router.get("/", async (req, res) => {
   }
 });
 
-module.exports = router;  
+module.exports = router;

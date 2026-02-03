@@ -163,7 +163,7 @@
   box-shadow: 0 0 20px rgba(120, 43, 255, 0.15);
   position: relative;
   color: white;
-  height: 380px;
+  height: 390px;
 }
 
 /* Glow in bottom-right corner (for the pie chart) */
@@ -197,6 +197,10 @@
   font-size: 12px;
   border-radius: 12px;
   color: white;
+}
+.chart-tag:hover{
+   background-color:#d08aff ;
+  transition: ease-in 0.2s;
 }
 
 /* X/Y Axis Styling */
@@ -241,7 +245,7 @@
 /* Search Bar */
 .search-bar {
   flex: 1;
-  background: #4D4283;
+  background: #4d428352;
   padding: 10px 15px;
   border-radius: 8px;
   display: flex;
@@ -334,6 +338,13 @@
 .studentfinance {
   background: #234fff;
 }
+.balance-adjustment {
+ background: #da23ff;
+}
+.type-badge {
+  white-space: nowrap;  /* prevents line breaks */
+}
+
 
 /* Amount Colors */
 .amount-positive {
@@ -460,4 +471,56 @@
               opacity: 1;
             }
           }
+
+      .edit-btn:hover{
+        background: #7b0ddc;
+      }
+      .rent-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 10px;
+}
+
+.rent-toggle input {
+  display: none;
+}
+
+.rent-toggle .slider {
+  width: 42px;
+  height: 22px;
+  background: #2a2a3d;
+  border-radius: 999px;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.rent-toggle .slider::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.rent-toggle input:checked + .slider {
+  background: #A78BFA; /* lilac ✨ */
+}
+
+.rent-toggle input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-text {
+  font-size: 15px;
+  color: #e5e5e5;
+  font-weight: 500;
+}
+
 

@@ -11,6 +11,7 @@ const path = require("path");
 const fs = require("fs");
 const uploadAvatarRouter = require("./routes/uploadAvatar");
 const userRoutes = require("./routes/userRoutes"); 
+const balanceRoutes = require("./routes/balanceRoutes");
 const app = express();
 
 const PORT = 5000;
@@ -50,6 +51,8 @@ app.use("/", userRoutes);
 app.get("/", (req, res) => {
   res.send("Server is running");
 });
+
+app.use("/api/balance", balanceRoutes);
 
 // Multer setup
 const storage = multer.diskStorage({
