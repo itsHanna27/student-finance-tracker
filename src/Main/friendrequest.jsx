@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../css/friendRequest.css";
+import Bestie from "../Modal/bestie";
 
 const FriendRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -78,7 +79,7 @@ const FriendRequests = () => {
   return (
     <div className="friend-requests-page">
       <h2 className="friend-requests-title">Friend Requests</h2>
-
+<Bestie/>
       <div className="friend-requests-scroll">
         <div className="friend-requests-grid">
           {requests.length === 0 && <p className="no-requests">No pending friend requests</p>}
@@ -88,7 +89,7 @@ const FriendRequests = () => {
               <div className="friend-request-avatar">
                 {user.avatar ? <img src={user.avatar} alt={user.name} /> : user.name.charAt(0)}
               </div>
-
+              
               <div className="friend-request-info">
                 <span className="friend-request-name">{user.name} {user.surname}</span>
                 <span className="friend-request-id">UserID: {user._id}</span>

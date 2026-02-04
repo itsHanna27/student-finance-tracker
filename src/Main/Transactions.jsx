@@ -12,6 +12,7 @@ import Withdraw from "../Modal/withdraw";
 import EditTransaction from "../Modal/editTransaction";
 import AddTransaction from "../Modal/AddTransaction";
 import Congrats from "../Modal/congrats";
+import Bestie from "../Modal/bestie";
 
 import {
   ResponsiveContainer,
@@ -801,7 +802,6 @@ const Transactions = ({ setActiveTab }) => {
                       <th>Edit</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {filteredTransactions.map((t, index) => (
                       <tr key={index}>
@@ -891,6 +891,13 @@ const Transactions = ({ setActiveTab }) => {
         `}</style>
 
         <Navbar />
+        <Bestie
+        balance={balance}
+        transactions={transactions}
+        savingGoals={savingGoals}
+        budgetGoals={budgetGoals}
+        userId={currentUser?.id}
+/>
         {content}
       </>
     );

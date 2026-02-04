@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../css/addFriends.css";
 import "../css/Friends.css";
+import Bestie from "../Modal/bestie";
 
 const AddFriends = () => {
   const [search, setSearch] = useState("");
@@ -147,6 +148,7 @@ const AddFriends = () => {
           />
         </div>
       </div>
+      <Bestie/>
 
       {search.trim() === "" ? (
         <p className="search-hint"></p>

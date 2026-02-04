@@ -1,6 +1,7 @@
-console.log("THIS SERVER FILE IS RUNNING");
-const transactionRoutes = require("./routes/transactionRoutes");
 require("dotenv").config();
+console.log("GROQ KEY:", process.env.GROQ_API_KEY ? "✅ loaded" : "❌ missing");
+console.log("THIS SERVER FILE IS RUNNING");
+
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
@@ -9,24 +10,28 @@ const User = require("./models/User");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+
+// Import routes
+const transactionRoutes = require("./routes/transactionRoutes");
 const uploadAvatarRouter = require("./routes/uploadAvatar");
 const userRoutes = require("./routes/userRoutes"); 
 const balanceRoutes = require("./routes/balanceRoutes");
-const app = express();
+const groqRoutes = require("./routes/groqRoutes"); // ← Make sure this exists
 
+const app = express();
 const PORT = 5000;
 
 // Connect to MongoDB 
 connectDB();
 
-// Middleware
+// Middleware (MUST come before routes!)
 app.use(cors({
-  origin: true, // allow all localhost origins
+  origin: true,
   credentials: true
 }));
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // REQUIRED for FormData
+app.use(express.urlencoded({ extended: true }));
 
 // Ensure uploads folder exists
 const uploadsDir = path.join(__dirname, "uploads");
@@ -34,7 +39,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
-//Serve uploaded files
+// Serve uploaded files
 app.use("/uploads", express.static(uploadsDir));
 
 // Debug middleware
@@ -43,16 +48,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// Use routers
+
+app.use("/api", groqRoutes);
+
+// Other routes
+app.use("/api/balance", balanceRoutes);
 app.use("/", uploadAvatarRouter);
 app.use("/", userRoutes);
+app.use("/", transactionRoutes);
 
 // Test route 
 app.get("/", (req, res) => {
   res.send("Server is running");
 });
-
-app.use("/api/balance", balanceRoutes);
 
 // Multer setup
 const storage = multer.diskStorage({
@@ -117,10 +125,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.use("/", transactionRoutes);
-
 // Start server 
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
-
