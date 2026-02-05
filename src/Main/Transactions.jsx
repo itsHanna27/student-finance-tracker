@@ -754,7 +754,7 @@ const Transactions = ({ setActiveTab }) => {
                   className="search-bar"
                   style={{ flex: 1, minWidth: "250px" }}
                 >
-                  <FaSearch className="search-icon" />
+                  
                   <input
                     placeholder="Search transaction by category, type, or description"
                     value={searchTerm}

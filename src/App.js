@@ -8,6 +8,7 @@ import Friends from "./Main/Friends";
 import AddFriends from "./Main/addFriends";
 import FriendRequest from "./Main/friendrequest";
 import BudgetandSaving from "./Main/BudgetandSaving";
+import SharedWallet from "./Main/SharedWallet";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/addfriends" element={<AddFriends />} />
         <Route path="/friendRequest" element={<FriendRequest />} />
          <Route path="/BudgetandSaving" element={<BudgetandSaving />} />
+           <Route path="/SharedWallet" element={<SharedWallet />} />
 
 
       </Routes>

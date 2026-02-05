@@ -79,7 +79,7 @@ const useFinanceData = () => {
     setTransactions,
     setBalance,
     userId: currentUser?.id,
-    monthlyData, // <--- include it here for Dashboard
+    monthlyData,
   };
 };
 

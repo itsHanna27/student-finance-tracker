@@ -106,7 +106,7 @@ Always base your advice on their ACTUAL financial data shown above. If they ask 
     const data = await groqResponse.json();
     
   
-    const aiReply = data.choices?.[0]?.message?.content || "Hmm, I didn't catch that. Can you try again? 💜";
+    const aiReply = data.choices?.[0]?.message?.content || "Hmm, I didn't catch that. Can you try again?";
     
     res.json({ 
       reply: aiReply,

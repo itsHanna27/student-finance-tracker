@@ -31,7 +31,7 @@ const Navbar = () => {
           </li>
 
           <li>
-            <NavLink to="/shared-wallets" className={({ isActive }) => (isActive ? "nav-active" : "nav-link")}>
+            <NavLink to="/SharedWallet" className={({ isActive }) => (isActive ? "nav-active" : "nav-link")}>
               Shared Wallets
             </NavLink>
           </li>
