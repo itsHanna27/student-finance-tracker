@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "../css/Friends.css";
-import Bestie from "../Modal/bestie";
 
 const Friends = () => {
   const [search, setSearch] = useState("");
@@ -150,7 +149,6 @@ const Friends = () => {
                     UserID: {friend._id}
                   </div>
                 </div>
-                <Bestie/>
                 <button
                   className="unfriend-btn"
                  onClick={() => {

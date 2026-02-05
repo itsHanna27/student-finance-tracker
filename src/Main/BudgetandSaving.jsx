@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../css/BudgetandSaving.css";
 import { FaClock } from "react-icons/fa";
-import Bestie from "../Modal/bestie";
+
 
 const BudgetandSaving = ({ setActiveTab = () => {} }) => {
   const [mode, setMode] = useState("saving"); // saving | budget
@@ -279,7 +279,6 @@ const getMaxDate = (period) => {
             )}
           </div>
         </div>
-<Bestie/>
         <div className="action-buttons">
           <button className="btn-edit" onClick={() => setIsEditing(true)}>
             <i className="fas fa-edit"></i>
@@ -298,7 +297,6 @@ const getMaxDate = (period) => {
   return (
     <div className="budget-card">
       <div className="budget-header">
-        <Bestie/>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", position: "relative" }}>
           {isEditing && (
             <span

@@ -4,6 +4,8 @@ import "../Navbar/navbar.css";
 import "../css/sharedWallet.css";
 import { FaSearch } from "react-icons/fa";
 import CreateWalletModal from "../Modal/createWallet";
+import useFinanceData from "../hooks/FinanceData";
+import Bestie from "../Modal/bestie";
 
 export default function SharedWallet() {
   const [wallets, setWallets] = useState([
@@ -58,6 +60,14 @@ export default function SharedWallet() {
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const {
+  transactions,
+  savingGoals,
+  budgetGoals,
+  balance,
+  userId,
+} = useFinanceData();
+
 
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -160,7 +170,14 @@ export default function SharedWallet() {
             </div>
           </div>
         </div>
-
+ {/* Bot */}
+            <Bestie
+              balance={balance}
+              transactions={transactions}
+              savingGoals={savingGoals}
+              budgetGoals={budgetGoals}
+              userId={userId}
+            />
         {/* Wallet Grid */}
         <div className="wallet-grid">
           {wallets.map((wallet) => (

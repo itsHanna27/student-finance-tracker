@@ -8,7 +8,6 @@ import FriendRequest from "./friendrequest";
 import BudgetandSaving from "./BudgetandSaving";
 import Transactions from "./Transactions";
 import "../css/Account.css";
-import Bestie from "../Modal/bestie";
 
 const ProfileSection = ({ user, avatar, setFile }) => {
   return (
@@ -50,7 +49,6 @@ const ProfileSection = ({ user, avatar, setFile }) => {
           </button>
         </div>
       </div>
-    <Bestie/>
       <div className="profile-info">
         <div>
           <span>Email</span>
