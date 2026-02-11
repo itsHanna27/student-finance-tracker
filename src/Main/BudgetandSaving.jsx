@@ -27,6 +27,45 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     setAmountDigits(value);
   };
 
+  // ---------- DATE HELPERS ----------
+  const getDaysLeft = (startDate, period) => {
+    if (!startDate) return null;
+    const start = new Date(startDate);
+    const now = new Date();
+    const maxDays = period === "weekly" ? 7 : 30;
+    const diffInMs = start.getTime() + maxDays * 24 * 60 * 60 * 1000 - now.getTime();
+    const daysLeft = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+    return Math.max(0, Math.min(daysLeft, maxDays));
+  };
+
+  // ---------- CHECK IF EXPIRED ----------
+  const isGoalExpired = (startDate, period) => {
+    if (!startDate) return false;
+    const daysLeft = getDaysLeft(startDate, period);
+    return daysLeft === 0;
+  };
+
+  // ---------- AUTO DELETE EXPIRED GOAL ----------
+  const autoDeleteIfExpired = async (goal) => {
+    if (!goal || !goal.startDate) return;
+
+    if (isGoalExpired(goal.startDate, goal.period)) {
+      console.log(`Goal expired, auto-deleting: ${goal._id}`);
+      try {
+        await fetch(`http://localhost:5000/transactions/${goal._id}`, {
+          method: "DELETE",
+        });
+        setExistingGoal(null);
+        setIsEditing(false);
+        setTitle("");
+        setStartDate("");
+        setAmountDigits("");
+      } catch (err) {
+        console.error("Failed to auto-delete expired goal:", err);
+      }
+    }
+  };
+
   // ---------- FETCH GOAL ----------
   useEffect(() => {
     const fetchGoal = async () => {
@@ -42,14 +81,19 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
         const goal = data.find((t) => t.type === mode && t.period === period);
 
         if (goal) {
-          setExistingGoal({
-            _id: goal._id,
-            type: goal.type,
-            period: goal.period,
-            title: goal.title || "",
-            startDate: goal.startDate || "",
-            amount: goal.amount || 0,
-          });
+          // Check if goal is expired before setting it
+          if (isGoalExpired(goal.startDate, goal.period)) {
+            await autoDeleteIfExpired(goal);
+          } else {
+            setExistingGoal({
+              _id: goal._id,
+              type: goal.type,
+              period: goal.period,
+              title: goal.title || "",
+              startDate: goal.startDate || "",
+              amount: goal.amount || 0,
+            });
+          }
         } else {
           setExistingGoal(null);
         }
@@ -60,6 +104,21 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
 
     fetchGoal();
   }, [mode, period]);
+
+  // ---------- CHECK EXPIRATION PERIODICALLY ----------
+  useEffect(() => {
+    if (!existingGoal || !existingGoal.startDate) return;
+
+    // Check every minute if the goal has expired
+    const intervalId = setInterval(() => {
+      autoDeleteIfExpired(existingGoal);
+    }, 60000); // Check every 60 seconds
+
+    // Also check immediately
+    autoDeleteIfExpired(existingGoal);
+
+    return () => clearInterval(intervalId);
+  }, [existingGoal]);
 
   // ---------- PREFILL WHEN EDIT ----------
   useEffect(() => {
@@ -86,7 +145,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
 
     const payload = {
       userId: currentUser.id,
-      type: mode, // ← use mode here
+      type: mode,
       period,
       amount: parseFloat(amountDigits) / 100,
       title,
@@ -113,7 +172,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
       const savedTransaction = await res.json();
 
       setIsEditing(false);
-      setExistingGoal(savedTransaction); // Use real MongoDB _id
+      setExistingGoal(savedTransaction);
       setTitle("");
       setStartDate("");
       setAmountDigits("");
@@ -151,46 +210,33 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     setPeriod("weekly");
   };
 
-  // ---------- DATE HELPERS ----------
-  const getDaysLeft = (startDate, period) => {
-    if (!startDate) return null;
-    const start = new Date(startDate);
-    const now = new Date();
-    const maxDays = period === "weekly" ? 7 : 30;
-    const diffInMs = start.getTime() + maxDays * 24 * 60 * 60 * 1000 - now.getTime();
-    const daysLeft = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-    return Math.max(0, Math.min(daysLeft, maxDays));
+  // ---------- MIN & MAX DATE ----------
+  const getMinDate = (period) => {
+    const today = new Date();
+    const minDate = new Date(today);
+
+    if (period === "weekly") {
+      minDate.setDate(today.getDate() - 6);
+    } else if (period === "monthly") {
+      minDate.setDate(today.getDate() - 30);
+    }
+
+    return minDate.toISOString().split("T")[0];
   };
 
-  // ---------- MIN & MAX DATE ----------
-const getMinDate = (period) => {
-  const today = new Date();
-  const minDate = new Date(today);
+  const getMaxDate = (period) => {
+    const today = new Date();
+    const maxDate = new Date(today);
 
-  if (period === "weekly") {
-    minDate.setDate(today.getDate() - 6); // 6 days ago
-  } else if (period === "monthly") {
-    minDate.setDate(today.getDate() - 30); // 30 days ago
-  }
+    if (period === "weekly") {
+      maxDate.setDate(today.getDate() + 6);
+    } else if (period === "monthly") {
+      maxDate.setMonth(today.getMonth() + 1);
+      maxDate.setDate(0);
+    }
 
-  return minDate.toISOString().split("T")[0];
-};
-
-const getMaxDate = (period) => {
-  const today = new Date();
-  const maxDate = new Date(today);
-
-  if (period === "weekly") {
-    maxDate.setDate(today.getDate() + 6); // 6 days in the future
-  } else if (period === "monthly") {
-    maxDate.setMonth(today.getMonth() + 1); // end of next month
-    maxDate.setDate(0); // last day of this month
-  }
-
-  return maxDate.toISOString().split("T")[0];
-};
-
-
+    return maxDate.toISOString().split("T")[0];
+  };
 
   // ===================== VIEW MODE ======================
   if (existingGoal && !isEditing) {
@@ -353,8 +399,7 @@ const getMaxDate = (period) => {
       <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
 
       <label>Start Date</label>
-      <input type="date" value={startDate}  min={getMinDate(period)} max={getMaxDate(period)} onChange={(e) => setStartDate(e.target.value)}/>
-
+      <input type="date" value={startDate} min={getMinDate(period)} max={getMaxDate(period)} onChange={(e) => setStartDate(e.target.value)}/>
 
       <div className="budget-actions">
         <button className="save-btn" onClick={handleSave}>

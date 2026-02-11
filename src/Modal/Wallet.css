@@ -1,0 +1,389 @@
+.wallet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 0, 20, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.wallet-modal {
+  width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #01041E;
+  border: 1px solid #C5A6F7;
+  border-radius: 20px;
+  padding: 28px;
+  color: white;
+}
+.wallet-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.wallet-modal::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.wallet-modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a78bfa, #7c3aed);
+  border-radius: 10px;
+}
+
+.wallet-modal::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #c4b5fd, #a78bfa);
+}
+
+/* For Firefox */
+.wallet-modal {
+  scrollbar-width: thin;
+  scrollbar-color: #a78bfa transparent;
+}
+
+.wallet-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.wallet-header h2 {
+  margin: 0;
+  font-size: 32px;
+  color: #A78BFA;
+}
+
+.wallet-members {
+  color: #ffffff;
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.wallet-members span {
+  font-weight: 600;
+}
+
+.wallet-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wallet-actions button {
+  padding: 8px 23px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.wallet-close {
+  background: #a78bfa;
+  color: #0b0218;
+    color:white;
+  border: 1px solid #ffffff !important;
+}
+
+.wallet-close:hover {
+  background: #c4b5fd;
+
+}
+
+.wallet-leave {
+  background: transparent;
+  border: 1px solid #ffffff !important;
+  color: #ffffff;
+}
+
+.wallet-leave:hover {
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.wallet-avatars {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.wallet-avatar {
+  width: 60px;
+  height: 60px;
+  min-width: 60px; 
+  min-height: 60px; 
+  border-radius: 50%;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  overflow: hidden;
+}
+
+.wallet-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wallet-avatar-add {
+  border: 1px dashed #a78bfa;
+  background: transparent;
+  cursor: pointer;
+  color: #a78bfa;
+}
+
+.wallet-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 15px;
+  gap:10px;
+}
+
+.wallet-stats p {
+
+  display: flex;
+  gap: 8px; 
+  margin: 0;
+  color: #c4b5fd;
+}
+
+.wallet-stats span {
+  font-weight: 600;
+  color: white;
+}
+
+.wallet-progress {
+  height: 6px;
+  background: #2a1f44;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.wallet-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a78bfa, #7c3aed);
+  transition: width 0.3s ease;
+}
+
+.wallet-section {
+  margin-top: 24px;
+}
+
+.wallet-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #c4b5fd;
+}
+
+.wallet-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.wallet-section-header h3 {
+  margin: 0;
+}
+
+.link {
+  color: #a78bfa;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.wallet-table {
+  background: #241642;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.2fr 1fr;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.row.header {
+  color: #c4b5fd;
+  font-weight: 600;
+  border-bottom: 1px solid #2a1f44;
+  padding-bottom: 10px;
+}
+
+.wallet-inputs {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.wallet-inputs input {
+  flex: 1;
+  padding: 5px;
+  border-radius: 10px;
+  border: none;
+  background: #241642;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+
+.wallet-inputs input::placeholder {
+  color: #7c6b9e;
+}
+
+.wallet-add {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.add-payment {
+  flex: 1;
+  background: linear-gradient(90deg, #a78bfa, #7c3aed);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-payment:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+}
+
+.chat-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  background: #a78bfa;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chat-btn:hover {
+  transform: translateY(-1px);
+  background: #c4b5fd;
+}
+
+.wallet-split-info {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.wallet-split-info p {
+  margin: 0;
+  color: #d1c4e9;
+}
+
+.wallet-stats p {
+  display: flex;
+  gap: 8px;
+}
+
+.wallet-split-info {
+  background: #241642;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.wallet-split-info h3 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #d1c4e9;
+}
+
+.member-balance-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #241642;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.member-balance-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.member-balance-avatar {
+  width: 35px;
+  height: 35px;
+  font-size: 14px;
+}
+
+.member-balance-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-balance-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: white;
+}
+
+.member-balance-share {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.member-balance-right {
+  text-align: right;
+}
+
+.member-status-paid {
+  color: #10B981;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.member-status-partial {
+  color: #FFA500;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.member-status-owes {
+  color: #F59E0B;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.member-status-not-paid {
+  color: #94A3B8;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.member-status-still-owes {
+  color: #94A3B8;
+  font-size: 12px;
+  margin-top: 2px;
+}

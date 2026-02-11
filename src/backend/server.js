@@ -16,7 +16,8 @@ const transactionRoutes = require("./routes/transactionRoutes");
 const uploadAvatarRouter = require("./routes/uploadAvatar");
 const userRoutes = require("./routes/userRoutes"); 
 const balanceRoutes = require("./routes/balanceRoutes");
-const groqRoutes = require("./routes/groqRoutes"); // ← Make sure this exists
+const groqRoutes = require("./routes/groqRoutes");
+const sharedWalletRoutes = require('./routes/sharedWalletRoutes'); // ✅ FIXED
 
 const app = express();
 const PORT = 5000;
@@ -44,13 +45,12 @@ app.use("/uploads", express.static(uploadsDir));
 
 // Debug middleware
 app.use((req, res, next) => {
-  console.log("➡️ Incoming:", req.method, req.url);
+  console.log("📨 Incoming:", req.method, req.url);
   next();
 });
 
-
 app.use("/api", groqRoutes);
-
+app.use('/', sharedWalletRoutes);
 // Other routes
 app.use("/api/balance", balanceRoutes);
 app.use("/", uploadAvatarRouter);

@@ -1,73 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../Navbar/Navbar";
 import "../Navbar/navbar.css";
 import "../css/sharedWallet.css";
 import { FaSearch } from "react-icons/fa";
 import CreateWalletModal from "../Modal/createWallet";
+import Wallet from "../Modal/Wallet";
 import useFinanceData from "../hooks/FinanceData";
 import Bestie from "../Modal/bestie";
 
 export default function SharedWallet() {
-  const [wallets, setWallets] = useState([
-    {
-      id: 1,
-      title: "House Bill",
-      members: [
-        { name: "Hanna", color: "#8B5CF6" },
-        { name: "Linda", color: "#EC4899" },
-        { name: "Esther", color: "#3B82F6" },
-        { name: "Thelma", color: "#10B981" }
-      ],
-      last: "Under - £200.00(Electricity)",
-      balanceLeft: "£637.00",
-    },
-    {
-      id: 2,
-      title: "Trip to Ghana",
-      members: [
-        { name: "Hanna", color: "#8B5CF6" },
-        { name: "Sylvia", color: "#F59E0B" },
-        { name: "Thelma", color: "#10B981" }
-      ],
-      last: "Hanna - £80.00(Hotel)",
-      paid: "£637.00",
-    },
-    {
-      id: 3,
-      title: "Weekend out",
-      members: [
-        { name: "Hanna", color: "#8B5CF6" },
-        { name: "John", color: "#EF4444" },
-        { name: "Jonah", color: "#06B6D4" },
-        { name: "Bryan", color: "#F59E0B" }
-      ],
-      last: "Bryan - £30.00(Breakfast)",
-      paid: "£147.00",
-    },
-    {
-      id: 4,
-      title: "Study session",
-      members: [
-        { name: "Hanna", color: "#8B5CF6" },
-        { name: "John", color: "#EF4444" },
-        { name: "Jonah", color: "#06B6D4" },
-        { name: "Bryan", color: "#F59E0B" },
-        { name: "Kristina Sylvia", color: "#EC4899" }
-      ],
-      last: "Bryan - £3.00(Snacks)",
-      paid: "£25.00",
-    },
-  ]);
-
+  const [wallets, setWallets] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const {
-  transactions,
-  savingGoals,
-  budgetGoals,
-  balance,
-  userId,
-} = useFinanceData();
+  const [showCreateWallet, setShowCreateWallet] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState(null);
 
+  const {
+    transactions,
+    savingGoals,
+    budgetGoals,
+    balance,
+    userId,
+  } = useFinanceData();
+
+  // Fetch wallets from backend
+  const fetchWallets = async () => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser?.id) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/wallets/${storedUser.id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch wallets');
+      }
+      
+      const data = await response.json();
+      console.log("Fetched wallets:", data);
+      setWallets(data);
+    } catch (err) {
+      console.error("Error fetching wallets:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWallets();
+  }, []);
+
+  // Handle wallet creation
+  const handleWalletCreated = (newWallet) => {
+    setWallets([newWallet, ...wallets]);
+  };
 
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -76,7 +65,23 @@ export default function SharedWallet() {
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
-    const [showCreateWallet, setShowCreateWallet] = useState(false);
+
+  const filteredWallets = wallets.filter(wallet =>
+    wallet.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Handle opening a wallet
+  const handleOpenWallet = (wallet) => {
+    setSelectedWallet(wallet);
+    setIsWalletOpen(true);
+  };
+
+  // Handle closing wallet and refresh data
+  const handleCloseWallet = () => {
+    setIsWalletOpen(false);
+    setSelectedWallet(null);
+    fetchWallets(); 
+  };
 
   return (
     <>
@@ -106,13 +111,18 @@ export default function SharedWallet() {
       
       <Navbar />
     
-       <CreateWalletModal
+      <CreateWalletModal
         isOpen={showCreateWallet}
         onClose={() => setShowCreateWallet(false)}
-        />
+        onWalletCreated={handleWalletCreated}
+      />
 
+      <Wallet
+        isOpen={isWalletOpen}
+        wallet={selectedWallet}
+        onClose={handleCloseWallet}
+      />
 
-      
       <div className="shared-wallet">
         {/* Page Header */}
         <div className="shared-wallet-header">
@@ -170,63 +180,120 @@ export default function SharedWallet() {
             </div>
           </div>
         </div>
- {/* Bot */}
-            <Bestie
-              balance={balance}
-              transactions={transactions}
-              savingGoals={savingGoals}
-              budgetGoals={budgetGoals}
-              userId={userId}
-            />
+
+        {/* Bot */}
+        <Bestie
+          balance={balance}
+          transactions={transactions}
+          savingGoals={savingGoals}
+          budgetGoals={budgetGoals}
+          userId={userId}
+        />
+
         {/* Wallet Grid */}
         <div className="wallet-grid">
-          {wallets.map((wallet) => (
-            <div key={wallet.id} className="wallet-card">
-              <h3>{wallet.title}</h3>
+          {loading ? (
+            <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#94A3B8" }}>
+              Loading wallets...
+            </p>
+          ) : filteredWallets.length === 0 && searchTerm === "" ? (
+            <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#94A3B8" }}>
+              No wallets yet. Create your first wallet!
+            </p>
+          ) : filteredWallets.length === 0 ? (
+            <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#94A3B8" }}>
+              No wallets found matching "{searchTerm}"
+            </p>
+          ) : (
+            filteredWallets.map((wallet) => (
+              <div key={wallet._id} className="wallet-card">
+                <h3>{wallet.title}</h3>
 
-              <div className="members-section">
-                <span className="members-label">Members:</span>
-                <div className="avatar-group">
-                  {wallet.members.map((member, idx) => (
-                    <div 
-                      key={idx} 
-                      className="useravatar"
-                      style={{ backgroundColor: member.color }}
-                      title={member.name}
-                    >
-                      {getInitials(member.name)}
-                    </div>
-                  ))}
+                <div className="members-section">
+                  <span className="members-label">Members:</span>
+                  <div className="avatar-group">
+                    {wallet.members.map((member, idx) => (
+                      <div 
+                        key={idx} 
+                        className="useravatar"
+                        style={{ backgroundColor: member.color }}
+                        title={member.name}
+                      >
+                        {member.avatar ? (
+                          <img
+                            src={member.avatar}
+                            alt={member.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          getInitials(member.name)
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Show last activity if exists */}
+                {wallet.lastActivity && (
+                  <p className="wallet-info">
+                    <span className="info-label">Last Activity:</span> {wallet.lastActivity}
+                  </p>
+                )}
+
+                {/* Manual Split - Show Budget and Remaining */}
+                {wallet.splitType === "manual" && (
+                  <>
+                    <p className="wallet-info">
+                      <span className="info-label">Budget:</span> {wallet.budgetValue || wallet.paid || "£0.00"}
+                    </p>
+                    <p className="wallet-info">
+                      <span className="info-label">Remaining:</span> 
+                      <span style={{ 
+                        color: parseFloat((wallet.currentBalance || "£0.00").replace('£', '')) < 0 ? '#EF4444' : '#10B981' 
+                      }}>
+                        {wallet.currentBalance || "£0.00"}
+                      </span>
+                    </p>
+                  </>
+                )}
+
+                {/* Equal Split - Show Total Amount and Per Person */}
+                {wallet.splitType === "equal" && (
+                  <>
+                    <p className="wallet-info">
+                      <span className="info-label">Total Amount:</span> {wallet.totalAmount || wallet.balanceLeft || wallet.budgetValue || "£0.00"}
+                    </p>
+                    <p className="wallet-info">
+                      <span className="info-label">Per Person:</span> £
+                      {(() => {
+                        const amount = wallet.totalAmount || wallet.balanceLeft || wallet.budgetValue || "£0.00";
+                        const numericAmount = parseFloat(amount.replace('£', ''));
+                        return (numericAmount / wallet.members.length).toFixed(2);
+                      })()}
+                    </p>
+                  </>
+                )}
+
+                <button
+                  onClick={() => handleOpenWallet(wallet)} 
+                  className="open-wallet-btn"
+                >
+                  Open
+                </button>
               </div>
-
-              {wallet.last && (
-                <p className="wallet-info">
-                  <span className="info-label">Last:</span> {wallet.last}
-                </p>
-              )}
-
-              {wallet.balanceLeft && (
-                <p className="wallet-info">
-                  <span className="info-label">Balance Left:</span> {wallet.balanceLeft}
-                </p>
-              )}
-
-              {wallet.paid && (
-                <p className="wallet-info">
-                  <span className="info-label">Paid:</span> {wallet.paid}
-                </p>
-              )}
-
-              <button className="open-wallet-btn">Open</button>
-            </div>
-          ))}
+            ))
+          )}
 
           {/* Create new wallet */}
-         <div
-  className="wallet-card create-wallet"
-  onClick={() => setShowCreateWallet(true)}
->
+          <div
+            className="wallet-card create-wallet"
+            onClick={() => setShowCreateWallet(true)}
+          >
             <div className="plus-icon">+</div>
             <p>Make new wallet</p>
           </div>

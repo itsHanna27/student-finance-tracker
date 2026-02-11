@@ -168,6 +168,36 @@ const Transactions = ({ setActiveTab }) => {
     checkBudgetWarning();
   }, [currentGoal, transactions, goalView]);
 
+  // Helper to check if goal is expired
+  const isGoalExpired = (startDate, period) => {
+    if (!startDate) return false;
+    const start = new Date(startDate);
+    const now = new Date();
+    const maxDays = period === "weekly" ? 7 : 30;
+    const diffInMs = start.getTime() + maxDays * 24 * 60 * 60 * 1000 - now.getTime();
+    const daysLeft = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+    return daysLeft <= 0;
+  };
+
+  // Auto-delete expired goal
+  const autoDeleteIfExpired = async (goal) => {
+    if (!goal || !goal.startDate) return false;
+    
+    if (isGoalExpired(goal.startDate, goal.period)) {
+      console.log(`Goal expired, auto-deleting: ${goal._id}`);
+      try {
+        await fetch(`http://localhost:5000/transactions/${goal._id}`, {
+          method: "DELETE",
+        });
+        return true; // Goal was deleted
+      } catch (err) {
+        console.error("Failed to auto-delete expired goal:", err);
+        return false;
+      }
+    }
+    return false; // Goal not expired
+  };
+
   const fetchSavingGoal = async () => {
     try {
       setIsLoadingGoal(true);
@@ -178,14 +208,31 @@ const Transactions = ({ setActiveTab }) => {
       console.log("All transactions:", data);
       const allSavings = data.filter((t) => t.type === "saving");
       const allBudgets = data.filter((t) => t.type === "budget");
+      
+      // Check and delete expired goals before setting state
       const savingsByPeriod = {
-        weekly: allSavings.find(s => s.period === "weekly") || null,
-        monthly: allSavings.find(s => s.period === "monthly") || null,
+        weekly: null,
+        monthly: null,
       };
       const budgetsByPeriod = {
-        weekly: allBudgets.find(b => b.period === "weekly") || null,
-        monthly: allBudgets.find(b => b.period === "monthly") || null,
+        weekly: null,
+        monthly: null,
       };
+
+      for (const saving of allSavings) {
+        const wasDeleted = await autoDeleteIfExpired(saving);
+        if (!wasDeleted && saving.period) {
+          savingsByPeriod[saving.period] = saving;
+        }
+      }
+
+      for (const budget of allBudgets) {
+        const wasDeleted = await autoDeleteIfExpired(budget);
+        if (!wasDeleted && budget.period) {
+          budgetsByPeriod[budget.period] = budget;
+        }
+      }
+
       console.log("Saving goals by period:", savingsByPeriod);
       console.log("Budgets by period:", budgetsByPeriod);
       setSavingGoals(savingsByPeriod);
@@ -199,6 +246,15 @@ const Transactions = ({ setActiveTab }) => {
 
   useEffect(() => {
     fetchSavingGoal();
+  }, []);
+
+  // Periodically check for expired goals every minute
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchSavingGoal();
+    }, 60000); // Check every 60 seconds
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const recalculateBalance = async () => {
