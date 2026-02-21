@@ -9,6 +9,7 @@ import AddFriends from "./Main/addFriends";
 import FriendRequest from "./Main/friendrequest";
 import BudgetandSaving from "./Main/BudgetandSaving";
 import SharedWallet from "./Main/SharedWallet";
+import Notification from "./Modal/Notification";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/friendRequest" element={<FriendRequest />} />
          <Route path="/BudgetandSaving" element={<BudgetandSaving />} />
            <Route path="/SharedWallet" element={<SharedWallet />} />
+            <Route path="/Notification" element={<Notification />} />
 
 
       </Routes>

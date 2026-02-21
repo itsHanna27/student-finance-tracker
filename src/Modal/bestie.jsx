@@ -234,11 +234,22 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
 };
 
 
-  // 🧠 Smart response generator (your existing logic)
+  //  Smart response generator (your existing logic)
   const generateResponse = (userText) => {
     const text = userText.toLowerCase().trim();
 
-    // 👋 Greetings
+    // Helper function to match whole words only
+    const hasWord = (word) => {
+      const regex = new RegExp(`\\b${word}\\b`, 'i');
+      return regex.test(text);
+    };
+
+    //  Force API call for hypothetical/complex questions
+    if (text.includes("if i") || text.includes("would i") || text.includes("should i") || text.includes("can i afford")) {
+      return null; // Let the AI handle these
+    }
+
+    //  Greetings
     if (["hi", "hello", "hey", "hiya", "yo"].some((g) => text === g)) {
       return "Hey there! 💜 I'm Bestie, your finance buddy! How can I help you today?";
     }
@@ -247,25 +258,25 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
       return "I'm doing great, thanks for asking! 😊 Ready to help you with your finances!";
     }
 
-    // 💰 Balance questions
-    if (text.includes("balance") || text.includes("how much do i have")) {
+    //  Balance questions
+    if (hasWord("balance") || text.includes("how much do i have")) {
       return `Your current balance is £${balance.toFixed(2)}! ${balance > 100 ? "You're in a good spot!" : "Maybe hold off on big purchases right now 💜"} Want to know where your money is going?`;
     }
 
-    if (text.includes("afford")) {
+    if (hasWord("afford")) {
       const weeklySpend = getSpendingThisWeek();
       const avgDaily = weeklySpend / 7;
       return `Based on your current balance of £${balance.toFixed(2)} and your average daily spending of £${avgDaily.toFixed(2)}, ${balance > avgDaily * 7 ? "you're in a good spot! Just keep an eye on your budget 😊" : "you might want to slow down on spending this week 💜"}`;
     }
 
-    // 📊 Spending questions
-    if (text.includes("spend") && (text.includes("today") || text.includes("2day"))) {
+    //  Spending questions
+    if (hasWord("spend") && (hasWord("today") || text.includes("2day"))) {
       const todaySpend = getSpendingToday();
       return todaySpend === 0 
         ? "You've spent £0 today so far! 🎉 A no-spend day keeps the budget healthy!"
         : `You've spent £${todaySpend.toFixed(2)} today. ${todaySpend > 20 ? "That's quite a bit! Try to take it easy for the rest of the day 😊" : "Looking good! Keep it up! 💜"}`;
     }
-    if (text.includes("spend") && text.match(/\d+ days ago/)) {
+    if (hasWord("spend") && text.match(/\d+ days ago/)) {
   const daysAgo = parseInt(text.match(/\d+/)[0], 10);
   const amount = getSpendingDaysAgo(daysAgo);
   return amount === 0
@@ -273,7 +284,7 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
     : `You spent £${amount.toFixed(2)} ${daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`}!`;
 }
 
-if (text.includes("spend") && (text.includes("today") || text.includes("2day"))) {
+if (hasWord("spend") && (hasWord("today") || text.includes("2day"))) {
   const todaySpend = getSpendingDaysAgo(0);
   return todaySpend === 0
     ? "You've spent £0 today so far! 🎉"
@@ -281,7 +292,7 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
 }
 
 
-    if (text.includes("spend") && text.includes("week")) {
+    if (hasWord("spend") && hasWord("week")) {
       const weekSpend = getSpendingThisWeek();
       const topCat = getTopCategory();
       return topCat 
@@ -289,7 +300,7 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
         : `This week you've spent £${weekSpend.toFixed(2)}. Great job tracking your expenses! 💜`;
     }
 
-    if (text.includes("where") && (text.includes("money going") || text.includes("spending"))) {
+    if (hasWord("where") && (text.includes("money going") || hasWord("spending"))) {
       const categories = getSpendingByCategory();
       if (categories.length === 0) return "You haven't recorded any spending yet! Add some transactions to see where your money goes 😊";
       const top3 = categories.slice(0, 3).map(c => `${c.name} (${c.percentage}%)`).join(", ");
@@ -317,7 +328,7 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
         : "You're doing well! Your spending looks healthy. Keep it up! 💜";
     }
 
-    if (text.includes("budget") && (text.includes("how") || text.includes("am i") || text.includes("doing"))) {
+    if (hasWord("budget") && (hasWord("how") || text.includes("am i") || hasWord("doing"))) {
       const budgetStatus = getBudgetStatus();
       if (!budgetStatus || budgetStatus.length === 0) {
         return "You haven't set a budget yet! Head to Account → Budget tab to create one and I'll help you track it 😊";
@@ -337,7 +348,7 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
     }
     
 
-    if (text.includes("exceeded") && text.includes("budget")) {
+    if (text.includes("exceeded") && hasWord("budget")) {
       const budgetStatus = getBudgetStatus();
       if (!budgetStatus || budgetStatus.length === 0) {
         return "You haven't set a budget yet! Want to create one? Head to Account → Budget tab! 😊";
@@ -357,17 +368,17 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
     }
 
     // Budgeting & Saving
-    if (text.includes("set up") && text.includes("budget")) {
+    if (text.includes("set up") && hasWord("budget")) {
       return "Head to your Account page and click 'Budget' tab! You can set weekly or monthly budgets and I'll help you track them 😊";
     }
 
-    if (text.includes("create") && (text.includes("saving") || text.includes("goal"))) {
+    if (hasWord("create") && (hasWord("saving") || hasWord("goal"))) {
       return "Go to Account → Budget tab! You can create a saving goal there and add money to it anytime. I'll cheer you on! 💪";
     }
 
-    if (text.includes("close") && text.includes("goal")) {
-      const isWeekly = text.includes("weekly") || text.includes("week");
-      const isMonthly = text.includes("monthly") || text.includes("month");
+    if (hasWord("close") && hasWord("goal")) {
+      const isWeekly = hasWord("weekly") || hasWord("week");
+      const isMonthly = hasWord("monthly") || hasWord("month");
       
       let goalProgress;
       if (isWeekly) {
@@ -412,15 +423,15 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
     }
 
     // App guidance
-    if (text.includes("add") && text.includes("transaction")) {
+    if (hasWord("add") && hasWord("transaction")) {
       return "Easy! Go to the Transactions page and click the 'Add Transaction' button. Fill in the amount, category, and description, and you're done! ✨";
     }
 
-    if (text.includes("edit") || text.includes("delete")) {
+    if (hasWord("edit") || hasWord("delete")) {
       return "On the Transactions page, click the edit button (pencil icon) next to any transaction. You can update or delete it from there! 🖊️";
     }
 
-    if (text.includes("see") && text.includes("transaction")) {
+    if (hasWord("see") && hasWord("transaction")) {
       return "All your recent transactions are on the Transactions page! You can search and filter them too 😊";
     }
 
@@ -429,11 +440,11 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
     }
 
     // 💜 Thanks & goodbye
-    if (text.includes("thank") || text.includes("thx") || text.includes("ty")) {
+    if (hasWord("thank") || hasWord("thx") || text === "ty") {
       return "You're so welcome! 💜 I'm always here if you need me!";
     }
 
-    if (text.includes("bye") || text === "cya" || text.includes("see you")) {
+    if (hasWord("bye") || text === "cya" || text.includes("see you")) {
       return `Bye ${userName}! Come back anytime you need help 😊💜`;
     }
     return null;
@@ -463,7 +474,6 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
 
     const data = await response.json();
 
-    // ✅ NEW: match backend response
     if (!data?.reply) {
       return "Hmm my brain lagged for a sec 😭 try again?";
     }
@@ -471,7 +481,7 @@ if (text.includes("spend") && (text.includes("today") || text.includes("2day")))
     return data.reply;
   } catch (err) {
     console.error(err);
-    return "I’m having connection issues rn 💔 Try again in a sec!";
+    return "I'm having connection issues rn 💔 Try again in a sec!";
   }
 };
 

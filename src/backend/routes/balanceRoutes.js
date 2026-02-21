@@ -2,9 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Balance = require("../models/Balance");
 
-/* ====================
-   Get current balance
-==================== */
+//get current balance
 router.get("/", async (req, res) => {
   try {
     const { userId } = req.query;
@@ -26,9 +24,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-/* ====================
-   Update balance
-==================== */
+//update
 router.put("/", async (req, res) => {
   try {
     const { userId, balance } = req.body;

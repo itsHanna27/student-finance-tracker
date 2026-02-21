@@ -21,7 +21,7 @@ const AddFriends = () => {
       try {
         const res = await fetch(`http://localhost:5000/user/${userFromStorage.id}`);
         const data = await res.json();
-        console.log("Initial user data:", data); // DEBUG
+        console.log("Initial user data:", data);
         setCurrentUser(data);
       } catch (err) {
         console.error(err);
@@ -50,7 +50,7 @@ const AddFriends = () => {
     fetchUsers();
   }, [currentUser]);
 
-  // Filter by STARTS WITH
+  // Filter
   const filteredFriends = search.trim()
     ? allUsers
         .filter(friend =>
@@ -105,7 +105,7 @@ const AddFriends = () => {
 
   // Remove friend
   const removeFriend = async (friendId) => {
-    // Custom confirmation with Yes/No
+    // Custom confirmation with yes or no
     const userConfirmed = window.confirm("Are you sure you want to remove this friend?\n\nClick OK for Yes, Cancel for No");
     
     if (!userConfirmed) {
@@ -129,8 +129,6 @@ const AddFriends = () => {
 
   if (loading) return <div className="add-friends-page">Loading...</div>;
   if (!currentUser) return <div className="add-friends-page">Please log in</div>;
-
-  console.log("Rendering with currentUser:", currentUser); // DEBUG
 
   return (
     <div className="add-friends-page">
@@ -157,8 +155,6 @@ const AddFriends = () => {
           {filteredFriends.map((friend) => {
             const isFriend = currentUser.friends?.includes(friend._id);
             const isPending = currentUser.sentRequests?.includes(friend._id);
-            
-            console.log(`Friend ${friend._id}: isFriend=${isFriend}, isPending=${isPending}`); // DEBUG
             
             return (
               <div key={friend._id} className="user-card">

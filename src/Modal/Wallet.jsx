@@ -94,7 +94,7 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
         alert("You have left the wallet.");
       }
 
-      onClose(); // Close the modal and refresh the parent component
+      onClose();
     } catch (err) {
       console.error("Error leaving wallet:", err);
       alert("Failed to leave wallet");
@@ -253,7 +253,7 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
           ))}
         </div>
 
-        {/* Totals - Different labels based on split type */}
+        {/* totals - different labels based on split type */}
         <div className="wallet-stats">
           <p>
             {isManualSplit ? "Budget:" : "Total Bill:"} 

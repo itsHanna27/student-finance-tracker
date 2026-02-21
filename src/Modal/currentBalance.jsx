@@ -31,7 +31,7 @@ const CurrentBalance = ({ balance, setBalance, onClose, onAddTransaction }) => {
       return;
     }
 
-    // Calculate difference BEFORE updating backend
+    // Calculate difference before updating backend
     const difference = newBalance - balance;
 
     try {

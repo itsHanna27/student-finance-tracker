@@ -39,7 +39,7 @@ const Dashboard = () => {
 
   const now = new Date();
 
-  // Start of current week (Monday)
+  // Start of current week 
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay() + 1);
   startOfWeek.setHours(0, 0, 0, 0);
@@ -54,7 +54,7 @@ const Dashboard = () => {
   transactions.forEach(t => {
     const tDate = new Date(t.date);
     if (tDate >= startOfWeek && tDate <= now) {
-      const dayIndex = (tDate.getDay() + 6) % 7; // Sunday=0 → index 6
+      const dayIndex = (tDate.getDay() + 6) % 7;
       if (t.type === "expense") weeklyData[dayIndex].expenses += Math.abs(Number(t.amount));
     }
   });
@@ -64,7 +64,7 @@ const Dashboard = () => {
   // Current month
 const currentMonth = now.getMonth();
 
-// Monthly income (ignore year)
+// Monthly income 
 const monthlyIncome = transactions
   .filter(t => {
     const tDate = new Date(t.date);
@@ -100,7 +100,7 @@ const monthlyIncome = transactions
       <Navbar />
 
       <div style={{ background: "linear-gradient(100deg, #111827, #0F0F1A)", minHeight: "100vh", width: "100%", color: "white", padding: "16px" }}>
-        {/* HERO SECTION */}
+        {/* HERO SECTION */} 
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", paddingTop: "10px" }}>
           <h1 style={{ fontSize: "40px", fontWeight: "500", display: "flex", gap: "8px", alignItems: "center", margin: 0, paddingTop: "30px" }}>
             Hi <span style={{ color: "#A78BFA" }}>{userName || "User"}</span>
@@ -174,12 +174,12 @@ const monthlyIncome = transactions
           </div>
         </div>
 
-        {/* HOW IT WORKS TITLE */}
+        {/* how it works title */}
         <div style={{ display: "flex", justifyContent: "center", paddingTop: "50px" }}>
           <p style={{ textAlign: "left", maxWidth: "900px", width: "100%", color: "#b8b8b8" }}>How it works</p>
         </div>
 
-        {/* SMART SPENDING SECTION */}
+        {/* smart section spending*/}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", paddingTop: "10px" }}>
           <h2 style={{ fontSize: "40px", fontWeight: "500", display: "flex", gap: "8px", alignItems: "center", margin: 0 }}>
             Smart Spending tools for <span style={{ color: "#A78BFA" }}>students</span>
@@ -191,7 +191,7 @@ const monthlyIncome = transactions
         </div>
       </div>
 
-      {/* FEATURE GRID */}
+      {/* features grid */}
       <div className="features-grid">
         <Link to="/transactions" style={{ textDecoration: "none" }}>
           <div className="feature-card">

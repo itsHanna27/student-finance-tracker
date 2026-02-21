@@ -108,7 +108,7 @@ export default function SharedWallet() {
           z-index: -1;
         }
       `}</style>
-      
+      {/* Modals*/}
       <Navbar />
     
       <CreateWalletModal

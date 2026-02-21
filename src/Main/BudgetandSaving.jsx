@@ -15,7 +15,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // ---------- FORMAT ----------
+  // format
   const formatDisplay = () => {
     if (!amountDigits) return "0.00";
     return (parseFloat(amountDigits) / 100).toFixed(2);
@@ -27,7 +27,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     setAmountDigits(value);
   };
 
-  // ---------- DATE HELPERS ----------
+  // date
   const getDaysLeft = (startDate, period) => {
     if (!startDate) return null;
     const start = new Date(startDate);
@@ -38,14 +38,14 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     return Math.max(0, Math.min(daysLeft, maxDays));
   };
 
-  // ---------- CHECK IF EXPIRED ----------
+  // checks if expired
   const isGoalExpired = (startDate, period) => {
     if (!startDate) return false;
     const daysLeft = getDaysLeft(startDate, period);
     return daysLeft === 0;
   };
 
-  // ---------- AUTO DELETE EXPIRED GOAL ----------
+  // auto delete expired goal
   const autoDeleteIfExpired = async (goal) => {
     if (!goal || !goal.startDate) return;
 
@@ -66,7 +66,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     }
   };
 
-  // ---------- FETCH GOAL ----------
+  //fetch goal
   useEffect(() => {
     const fetchGoal = async () => {
       const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -105,22 +105,21 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     fetchGoal();
   }, [mode, period]);
 
-  // ---------- CHECK EXPIRATION PERIODICALLY ----------
+  //checks if goal is exired
   useEffect(() => {
     if (!existingGoal || !existingGoal.startDate) return;
 
     // Check every minute if the goal has expired
     const intervalId = setInterval(() => {
       autoDeleteIfExpired(existingGoal);
-    }, 60000); // Check every 60 seconds
-
+    }, 60000); 
     // Also check immediately
     autoDeleteIfExpired(existingGoal);
 
     return () => clearInterval(intervalId);
   }, [existingGoal]);
 
-  // ---------- PREFILL WHEN EDIT ----------
+  // prefilled when edit
   useEffect(() => {
     if (isEditing && existingGoal) {
       setTitle(existingGoal.title || "");
@@ -135,7 +134,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     }
   }, [isEditing, existingGoal]);
 
-  // ---------- SAVE ----------
+  // save
   const handleSave = async () => {
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
     if (!currentUser.id) {
@@ -182,7 +181,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     }
   };
 
-  // ---------- DELETE ----------
+  //delete
   const handleDelete = async () => {
     if (!existingGoal) return;
 
@@ -201,7 +200,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     }
   };
 
-  // ---------- CLEAR ----------
+  // clear
   const handleClear = () => {
     setTitle("");
     setStartDate("");
@@ -210,7 +209,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     setPeriod("weekly");
   };
 
-  // ---------- MIN & MAX DATE ----------
+  // min and max
   const getMinDate = (period) => {
     const today = new Date();
     const minDate = new Date(today);
@@ -238,7 +237,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     return maxDate.toISOString().split("T")[0];
   };
 
-  // ===================== VIEW MODE ======================
+  // view mode
   if (existingGoal && !isEditing) {
     return (
       <div className="budget-card">
@@ -339,7 +338,7 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     );
   }
 
-  // ===================== FORM MODE ======================
+  // form
   return (
     <div className="budget-card">
       <div className="budget-header">

@@ -17,7 +17,8 @@ const uploadAvatarRouter = require("./routes/uploadAvatar");
 const userRoutes = require("./routes/userRoutes"); 
 const balanceRoutes = require("./routes/balanceRoutes");
 const groqRoutes = require("./routes/groqRoutes");
-const sharedWalletRoutes = require('./routes/sharedWalletRoutes'); // ✅ FIXED
+const sharedWalletRoutes = require('./routes/sharedWalletRoutes');
+const notificationRoutes = require("./routes/NotificationRoutes");
 
 const app = express();
 const PORT = 5000;
@@ -25,7 +26,7 @@ const PORT = 5000;
 // Connect to MongoDB 
 connectDB();
 
-// Middleware (MUST come before routes!)
+// Middleware
 app.use(cors({
   origin: true,
   credentials: true
@@ -34,7 +35,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Ensure uploads folder exists
+
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
@@ -45,17 +46,17 @@ app.use("/uploads", express.static(uploadsDir));
 
 // Debug middleware
 app.use((req, res, next) => {
-  console.log("📨 Incoming:", req.method, req.url);
+  console.log("Incoming:", req.method, req.url);
   next();
 });
 
 app.use("/api", groqRoutes);
 app.use('/', sharedWalletRoutes);
-// Other routes
 app.use("/api/balance", balanceRoutes);
 app.use("/", uploadAvatarRouter);
 app.use("/", userRoutes);
 app.use("/", transactionRoutes);
+app.use("/", notificationRoutes);
 
 // Test route 
 app.get("/", (req, res) => {
@@ -127,5 +128,5 @@ app.post("/login", async (req, res) => {
 
 // Start server 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(` Server running on port ${PORT}`);
 });

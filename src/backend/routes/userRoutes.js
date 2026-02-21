@@ -2,13 +2,14 @@ const express = require("express");
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 const router = express.Router();
 
 // Multer setup (memory storage)
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) cb(null, true);
     else cb(new Error("Only images allowed"));
@@ -35,13 +36,11 @@ router.post("/upload-avatar", upload.single("avatar"), async (req, res) => {
     };
 
     const result = await streamUpload(req.file.buffer);
-
     const user = await User.findByIdAndUpdate(
       req.body.userId,
       { avatar: result.secure_url },
       { new: true }
     );
-
     res.json({ avatar: user.avatar });
   } catch (err) {
     console.error(err);
@@ -67,7 +66,6 @@ router.post("/remove-friend", async (req, res) => {
   try {
     const user = await User.findById(userId);
     const friend = await User.findById(friendId);
-
     if (!user || !friend) return res.status(404).json({ message: "User not found" });
 
     user.friends = user.friends.filter(id => id.toString() !== friendId);
@@ -83,41 +81,43 @@ router.post("/remove-friend", async (req, res) => {
   }
 });
 
-// Send friend request - FIXED FIELD NAMES
+// Send friend request
 router.post("/send-friend-request", async (req, res) => {
   const { userId, friendId } = req.body;
-  console.log(" Send friend request:", { userId, friendId }); // DEBUG
-  
   if (!userId || !friendId) return res.status(400).json({ message: "Missing IDs" });
   if (userId === friendId) return res.status(400).json({ message: "Cannot send request to yourself" });
 
   try {
     const user = await User.findById(userId);
     const friend = await User.findById(friendId);
-
     if (!user || !friend) return res.status(404).json({ message: "User not found" });
 
-    // Initialize arrays if undefined
     if (!user.sentRequests) user.sentRequests = [];
-    if (!friend.friendRequests) friend.friendRequests = []; // CHANGED: was receivedRequests
+    if (!friend.friendRequests) friend.friendRequests = [];
 
-    // Prevent duplicates
     if (user.sentRequests.includes(friendId) || user.friends.includes(friendId)) {
       return res.status(400).json({ message: "Request already sent or already friends" });
     }
 
-    // Add request
     user.sentRequests.push(friendId);
-    friend.friendRequests.push(userId); // CHANGED: was receivedRequests
+    friend.friendRequests.push(userId);
 
     await user.save();
     await friend.save();
 
-    console.log("Friend request saved. Updated user:", user); // DEBUG
+    // create notification forperson recvivng friend request
+    await Notification.create({
+      userId: friendId,
+      type: "friend_request",
+      title: "New Friend Request",
+      message: `${user.name} ${user.surname} sent you a friend request.`,
+      fromUserId: userId,
+      fromUserName: `${user.name} ${user.surname}`,
+    });
 
     res.json({ message: "Friend request sent!", user });
   } catch (err) {
-    console.error("❌ Error in send-friend-request:", err);
+    console.error("Error in send-friend-request:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -133,7 +133,7 @@ router.get("/user/:id", async (req, res) => {
   }
 });
 
-// Get users by IDs (for friend requests page)
+// Get users by IDs
 router.post("/users-by-ids", async (req, res) => {
   try {
     const { ids } = req.body;
@@ -153,17 +153,31 @@ router.post("/respond-request/:senderId", async (req, res) => {
   try {
     const receiver = await User.findById(receiverId);
     const sender = await User.findById(senderId);
-
     if (!receiver || !sender) return res.status(404).json({ message: "User not found" });
 
-    // Remove from friendRequests (was receivedRequests)
     receiver.friendRequests = receiver.friendRequests.filter(id => id.toString() !== senderId);
     sender.sentRequests = sender.sentRequests.filter(id => id.toString() !== receiverId);
 
     if (action === "accept") {
-      // Add to friends list
       if (!receiver.friends.includes(senderId)) receiver.friends.push(senderId);
       if (!sender.friends.includes(receiverId)) sender.friends.push(receiverId);
+
+      //friend request
+      await Notification.create({
+        userId: senderId,
+        type: "friend_accepted",
+        title: "Friend Request Accepted",
+        message: `${receiver.name} ${receiver.surname} accepted your friend request. You are now friends!`,
+        fromUserId: receiverId,
+        fromUserName: `${receiver.name} ${receiver.surname}`,
+      });
+
+      
+      await Notification.deleteOne({
+        userId: receiverId,
+        type: "friend_request",
+        fromUserId: senderId,
+      });
     }
 
     await receiver.save();

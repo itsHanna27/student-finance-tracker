@@ -5,7 +5,7 @@ const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
   const [amountDigits, setAmountDigits] = useState(""); 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Safety check - if no saving goal exists
+  // check if no saving goal exists
   if (!savingGoal) {
     return (
       <div className="modal-overlay" onClick={onClose}>
@@ -44,7 +44,7 @@ const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
     try {
       setIsLoading(true);
 
-      // --- Update weekly goal ---
+      // update weekly goal
       const currentSavedAmount = savingGoal.currentSaved || 0;
       const updatedWeeklyGoal = {
         ...savingGoal,
@@ -60,7 +60,7 @@ const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
       const updatedWeeklyData = await res.json();
       console.log("Weekly goal updated:", updatedWeeklyData);
 
-      // --- Update monthly goal if provided ---
+      //update monthly goal
       if (monthlyGoal) {
         const monthlySavedAmount = monthlyGoal.currentSaved || 0;
         const updatedMonthlyGoal = {

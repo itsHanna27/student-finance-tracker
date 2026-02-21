@@ -8,7 +8,6 @@
   z-index: 50;
 }
 
-/* Smaller modal + perfectly centered */
 .modal-content {
   background: #0E1025;
   border: 2px solid #6A4BFF;
@@ -105,7 +104,7 @@ textarea {
   justify-content: center;
   gap: 25px;
   margin-top: 22px;
-  width: 90%; /* changed to 90% */
+  width: 90%;
 }
 
 .confirm-btn {

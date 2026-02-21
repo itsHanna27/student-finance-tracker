@@ -5,7 +5,7 @@ const Withdraw = ({ onClose, savingGoal, onUpdate }) => {
   const [amountDigits, setAmountDigits] = useState(""); 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Safety check - if no saving goal exists, show error
+  // checks if no saving goal exists, show error
   if (!savingGoal) {
     return (
       <div className="modal-overlay" onClick={onClose}>
@@ -17,7 +17,7 @@ const Withdraw = ({ onClose, savingGoal, onUpdate }) => {
       </div>
     );
   }
-
+//format
   const formatDisplay = () => {
     if (!amountDigits) return "£0.00";
     const num = parseFloat(amountDigits) / 100;
@@ -65,7 +65,7 @@ const Withdraw = ({ onClose, savingGoal, onUpdate }) => {
       const updatedGoalData = await res.json();
       console.log("Goal updated successfully:", updatedGoalData);
 
-      // Call the onUpdate callback to refresh the goal in parent BEFORE closing
+      // Call the onUpdate callback to refresh the goal
       if (onUpdate) {
         await onUpdate();
       }

@@ -19,7 +19,7 @@
 }
 
 
-/* Purple light corner (only for balance card) */
+
 .balance-card::after {
   content: "";
   position: absolute;
@@ -166,7 +166,7 @@
   height: 390px;
 }
 
-/* Glow in bottom-right corner (for the pie chart) */
+/* Glow in (for the pie chart) */
 .pie-card::after {
   content: "";
   position: absolute;
@@ -208,9 +208,6 @@
   fill: #cda9ff !important;
   font-size: 12px;
 }
-
-
-
 
 /* Container */
 .transactions-container {
@@ -342,7 +339,7 @@
  background: #da23ff;
 }
 .type-badge {
-  white-space: nowrap;  /* prevents line breaks */
+  white-space: nowrap;  
 }
 
 
@@ -510,7 +507,7 @@
 }
 
 .rent-toggle input:checked + .slider {
-  background: #A78BFA; /* lilac ✨ */
+  background: #A78BFA;
 }
 
 .rent-toggle input:checked + .slider::before {

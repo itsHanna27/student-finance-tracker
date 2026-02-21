@@ -8,6 +8,9 @@ console.log("fetch exists:", typeof fetch);
 router.post("/groq", async (req, res) => {
   try {
     const { userMessage, financialContext } = req.body;
+      console.log(" User message:", userMessage);
+    console.log("Financial context:", JSON.stringify(financialContext, null, 2));
+    console.log(" Budget status specifically:", financialContext.budgetStatus);
 
     if (!userMessage) return res.status(400).json({ error: "No message provided" });
 
@@ -60,7 +63,7 @@ ACCOUNT & SETTINGS:
 - View stats: Dashboard shows spending trends, category breakdown, budget health
 
 Your personality:
-- Warm, friendly, conversational (use emojis like 💜 😊 🎉 occasionally)
+- Warm, friendly, conversational (use emojis like 💜 😊 🎉 :) occasionally)
 - Supportive and non-judgmental about spending
 - Give practical, actionable advice
 - Keep responses SHORT (2-4 sentences max unless explaining a feature)

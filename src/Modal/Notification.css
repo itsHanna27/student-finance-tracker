@@ -1,0 +1,278 @@
+/* ───────────────────────────── */
+/* Bell Wrapper */
+/* ───────────────────────────── */
+
+.bell-wrapper {
+  position: relative;
+}
+
+.bell-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  color: #A78BFA;
+}
+
+/* ───────────────────────────── */
+/* Empty dropdown state */
+/* ───────────────────────────── */
+
+.notif-dropdown-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9CA3AF;
+}
+
+.notif-dropdown-empty span {
+  font-size: 36px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.notif-dropdown-empty p {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+}
+
+
+.notif-page {
+  min-height: 100vh;
+  background: linear-gradient(100deg, #111827, #0F0F1A);
+  padding: 50px 50px;
+  font-family: 'Poppins', sans-serif;
+  margin: 0 auto;
+  color: white;
+  max-width: 70%;
+}
+
+.notif-page-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #A78BFA;
+}
+
+.notif-page-sub {
+  font-size: 14px;
+  color: #9CA3AF;
+
+}
+
+.notif-mark-all-btn {
+  background: #1F2937;
+  color: #A78BFA;
+  border: 1px solid #312E81;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.notif-mark-all-btn:hover {
+  background: #312E81;
+  color: white;
+}
+
+.notif-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.notif-filter-chip {
+  background: #1F2937;
+  border: 1px solid #374151;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.notif-filter-chip:hover {
+  border-color: #A78BFA;
+  color: #A78BFA;
+}
+
+.notif-filter-chip.active {
+  background: #A78BFA;
+  border-color: #A78BFA;
+  color: #111827;
+  font-weight: 600;
+}
+
+.chip-badge {
+  background: #EF4444;
+  color: white;
+  font-size: 10px;
+  border-radius: 999px;
+  padding: 2px 5px;
+  margin-left:5px;
+}
+
+
+.notif-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6B7280;
+  margin: 0 0 10px;
+  padding-top: 25px;
+}
+
+.notif-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
+.notif-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #1F2937;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid #2A2D45;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notif-card:hover {
+  border-color: #A78BFA;
+  box-shadow: 0 0 0 1px #A78BFA33;
+  transform: translateY(-2px);
+}
+
+.notif-card-unread {
+  background: #1B2130;
+  border-color: #A78BFA55;
+}
+
+/* Icon */
+
+.notif-card-icon {
+  width: 55px;
+  height: 55px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Content */
+
+.notif-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.notif-card-time {
+  font-size: 11px;
+  color: #6B7280;
+  margin-left: 5vh;
+}
+
+.notif-card-msg {
+  font-size: 13px;
+  color: #D1D5DB;
+  line-height: 1.5;
+  margin: 6px 0 8px;
+}
+
+.notif-type-tag {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+/* Actions */
+
+.notif-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.notif-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #A78BFA;
+}
+
+.notif-dismiss-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  background: none;
+  border: none;
+  color: #6B7280;
+  font-size: 20px;
+  cursor: pointer;
+
+  opacity: 0;           
+  pointer-events: none;      
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.notif-card:hover .notif-dismiss-btn {
+  opacity: 1;
+  pointer-events: auto;       
+}
+
+.notif-dismiss-btn:hover {
+  color: #EF4444;
+}
+
+/* Cancel Recurring */
+
+.notif-cancel-btn {
+  background: none;
+  border: 1px solid #A78BFA;
+  color: #A78BFA;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notif-cancel-btn:hover {
+  background: #A78BFA;
+  color: #111827;
+}
+
+.notif-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9CA3AF;
+}
+
+.notif-empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.notif-empty p {
+  font-size: 15px;
+}

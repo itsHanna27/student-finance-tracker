@@ -272,7 +272,7 @@
 .bestie-send-btn:active {
   transform: scale(0.95);
 }
-/* ===== Suggested questions bar ===== */
+/* suggested questions */
 .bestie-suggestions {
   display: flex;
   gap: 10px;
@@ -282,14 +282,13 @@
   white-space: nowrap;
 
   background: transparent;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none; 
 }
 
 .bestie-suggestions::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none; 
 }
 
-/* ===== Water bubble chips ===== */
 .bestie-suggestion-chip {
   flex-shrink: 0;
 
@@ -301,12 +300,10 @@
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.35);
 
-  /* Glass / water effect */
   background: rgba(255, 255, 255, 0.016);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
-  /* 3D bubble depth */
   box-shadow:
     inset 0 1px 2px rgba(234, 200, 255, 0.6),
     inset 0 -2px 4px rgba(0, 0, 0, 0.08);
@@ -315,7 +312,6 @@
   transition: all 0.25s ease;
 }
 
-/* Hover = float */
 .bestie-suggestion-chip:hover {
   transform: translateY(-2px);
   box-shadow:
@@ -324,13 +320,11 @@
     0 10px 22px rgba(123, 97, 255, 0.35);
 }
 
-/* Pressed = squish */
 .bestie-suggestion-chip:active {
   transform: scale(0.95);
 }
-/* Add this to your existing bestie.css file */
 
-/* Typing Indicator */
+
 .typing-indicator {
   display: flex;
   align-items: center;

@@ -1,11 +1,11 @@
-/* ===== Card ===== */
+/* card */
 .budget-card {
   width: 100%;
   max-width: 720px;
   padding: 0 20px;
 }
 
-/* ===== Header ===== */
+/* header */
 .budget-header {
   display: flex;
   justify-content: space-between;
@@ -33,7 +33,7 @@
   line-height: 1.5;
 }
 
-/* ===== Budget / Saving toggle ===== */
+/* Budget and Saving toggle */
 .mode-toggle {
   display: inline-flex;
   background: rgba(30, 35, 65, 0.6);
@@ -62,7 +62,6 @@
   color: white;
 }
 
-/* ===== Weekly / Monthly ===== */
 .period-toggle {
   display: flex;
   gap: 20px;
@@ -91,7 +90,6 @@
   border-color: #a78bfa;
 }
 
-/* ===== Labels ===== */
 .budget-card label {
   display: block;
   font-size: 16px;
@@ -101,7 +99,6 @@
   margin-top: 4px;
 }
 
-/* ===== Inputs ===== */
 .budget-card input {
   width: 85%;
   height: 20%;
@@ -127,7 +124,6 @@
   color: #c0c5d8;
 }
 
-/* ===== Actions ===== */
 .budget-actions {
   display: flex;
   gap: 18px;
@@ -180,7 +176,7 @@
   filter: invert(1);
   cursor: pointer;
 }
-/* Goal Summary Card - Main Container */
+/* Goal Summary Card */
 .goal-summary-card {
   background: linear-gradient(145deg, rgba(27, 19, 47, 0.05), rgba(12, 2, 43, 0.1));
   border: 2px solid #9370f5;
