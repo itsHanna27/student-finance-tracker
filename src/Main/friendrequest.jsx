@@ -31,7 +31,7 @@ const FriendRequests = () => {
     fetchCurrentUser();
   }, []);
 
-  // Fetch incoming friend requests - CHANGED: receivedRequests -> friendRequests
+  // Fetch incoming friend requests 
   useEffect(() => {
     if (!currentUser?.friendRequests) return;
     
