@@ -81,7 +81,6 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
         const goal = data.find((t) => t.type === mode && t.period === period);
 
         if (goal) {
-          // Check if goal is expired before setting it
           if (isGoalExpired(goal.startDate, goal.period)) {
             await autoDeleteIfExpired(goal);
           } else {
@@ -105,15 +104,13 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     fetchGoal();
   }, [mode, period]);
 
-  //checks if goal is exired
+  //checks if goal is expired
   useEffect(() => {
     if (!existingGoal || !existingGoal.startDate) return;
 
-    // Check every minute if the goal has expired
     const intervalId = setInterval(() => {
       autoDeleteIfExpired(existingGoal);
-    }, 60000); 
-    // Also check immediately
+    }, 60000);
     autoDeleteIfExpired(existingGoal);
 
     return () => clearInterval(intervalId);
@@ -139,6 +136,16 @@ const BudgetandSaving = ({ setActiveTab = () => {} }) => {
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
     if (!currentUser.id) {
       alert("User not found");
+      return;
+    }
+
+    if (!amountDigits || parseFloat(amountDigits) === 0) {
+      alert("Please enter an amount first");
+      return;
+    }
+
+    if (!startDate) {
+      alert("Please enter a start date first");
       return;
     }
 

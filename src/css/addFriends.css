@@ -1,4 +1,4 @@
- .search-input {
+.search-input {
   border: none;
   border-radius: 5px;
 }
@@ -19,10 +19,31 @@
 }
 
 .user-cards-container {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 30px;
+  max-height: 60vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.user-cards-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-cards-container::-webkit-scrollbar-track {
+  background: #0f112a;
+  border-radius: 10px;
+}
+
+.user-cards-container::-webkit-scrollbar-thumb {
+  background: #a78bfa;
+  border-radius: 10px;
+}
+
+.user-cards-container::-webkit-scrollbar-thumb:hover {
+  background: #9333ea;
 }
 
 .user-card {
@@ -30,13 +51,11 @@
   border: 1px solid #2d2d52;
   border-radius: 12px;
   padding: 10px;
-  width: 45%;
   display: flex;
   flex-direction: column;
   gap: 15px;
   transition: border-color 0.3s ease;
 }
-
 
 .user-info {
   display: flex;
@@ -45,11 +64,22 @@
 }
 
 .user-avatar {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  object-fit: cover;
+  background: #a78bfa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
   border: 2px solid #2d2d52;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-details {
@@ -71,6 +101,13 @@
   margin: 0;
 }
 
+.avatar-letter {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
 .add-btn {
   background: #a78bfa;
   color: white;
@@ -83,36 +120,11 @@
   transition: all 0.3s ease;
   width: 100%;
   align-self: center;
-text-align: center;
-justify-content: center;
-margin-top: 5px;
+  text-align: center;
+  justify-content: center;
+  margin-top: 5px;
 }
 
 .add-btn:hover:not(:disabled) {
   background: #9333ea;
-}
-
-.user-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #a78bfa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-letter {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  text-transform: uppercase;
 }

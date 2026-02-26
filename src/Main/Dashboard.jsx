@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, Area, XAxis, ResponsiveContainer, Tooltip } from "recharts";
 import {
@@ -17,7 +17,7 @@ import Bestie from "../Modal/bestie";
 import "../css/FinanceCard.css";
 
 const Dashboard = () => {
-  const { transactions, savingGoals, budgetGoals, balance, userId } = useFinanceData();
+  const { transactions, savingGoals, budgetGoals, balance, userId, refresh } = useFinanceData();
   const navigate = useNavigate();
 
   const [userName, setUserName] = useState("");
@@ -35,42 +35,44 @@ const Dashboard = () => {
     }
   }, []);
 
-  
+  // Weekly chart data — recomputes when transactions change
+  const weeklyData = useMemo(() => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + 1);
+    startOfWeek.setHours(0, 0, 0, 0);
 
-  const now = new Date();
+    const data = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => ({
+      day,
+      expenses: 0,
+    }));
 
-  // Start of current week 
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay() + 1);
-  startOfWeek.setHours(0, 0, 0, 0);
+    transactions.forEach(t => {
+      const tDate = new Date(t.date);
+      if (tDate >= startOfWeek && tDate <= now) {
+        const dayIndex = (tDate.getDay() + 6) % 7;
+        if (t.type === "expense") data[dayIndex].expenses += Math.abs(Number(t.amount));
+      }
+    });
 
-  // Weekly data initialization
-  const weeklyData = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => ({
-    day,
-    expenses: 0,
-  }));
+    return data;
+  }, [transactions]);
 
-  // Fill weekly data from transactions
-  transactions.forEach(t => {
-    const tDate = new Date(t.date);
-    if (tDate >= startOfWeek && tDate <= now) {
-      const dayIndex = (tDate.getDay() + 6) % 7;
-      if (t.type === "expense") weeklyData[dayIndex].expenses += Math.abs(Number(t.amount));
-    }
-  });
+  // Weekly total — recomputes when weeklyData changes
+  const weeklyExpensesTotal = useMemo(() =>
+    weeklyData.reduce((sum, day) => sum + day.expenses, 0),
+  [weeklyData]);
 
-  const weeklyExpensesTotal = weeklyData.reduce((sum, day) => sum + day.expenses, 0);
-
-  // Current month
-const currentMonth = now.getMonth();
-
-// Monthly income 
-const monthlyIncome = transactions
-  .filter(t => {
-    const tDate = new Date(t.date);
-    return tDate.getMonth() === currentMonth && t.type === "income";
-  })
-  .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
+  // Monthly income — recomputes when transactions change
+  const monthlyIncome = useMemo(() => {
+    const currentMonth = new Date().getMonth();
+    return transactions
+      .filter(t => {
+        const tDate = new Date(t.date);
+        return tDate.getMonth() === currentMonth && t.type === "income";
+      })
+      .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
+  }, [transactions]);
 
   return (
     <>
@@ -100,7 +102,7 @@ const monthlyIncome = transactions
       <Navbar />
 
       <div style={{ background: "linear-gradient(100deg, #111827, #0F0F1A)", minHeight: "100vh", width: "100%", color: "white", padding: "16px" }}>
-        {/* HERO SECTION */} 
+        {/* HERO SECTION */}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", paddingTop: "10px" }}>
           <h1 style={{ fontSize: "40px", fontWeight: "500", display: "flex", gap: "8px", alignItems: "center", margin: 0, paddingTop: "30px" }}>
             Hi <span style={{ color: "#A78BFA" }}>{userName || "User"}</span>
@@ -130,11 +132,9 @@ const monthlyIncome = transactions
               </div>
 
               <div className="stat-card">
-                  <p className="stat-label">Monthly income</p>
-                  <h3 className="stat-value">
-                    £{monthlyIncome.toFixed(2)}
-                  </h3>
-                </div>
+                <p className="stat-label">Monthly Income</p>
+                <h3 className="stat-value">£{monthlyIncome.toFixed(2)}</h3>
+              </div>
 
               <div className="stat-card">
                 <p className="stat-label">Weekly Expenses</p>
@@ -149,6 +149,7 @@ const monthlyIncome = transactions
               savingGoals={savingGoals}
               budgetGoals={budgetGoals}
               userId={userId}
+              onTransactionChange={refresh} 
             />
 
             {/* Chart */}
@@ -174,12 +175,12 @@ const monthlyIncome = transactions
           </div>
         </div>
 
-        {/* how it works title */}
+        {/* How it works title */}
         <div style={{ display: "flex", justifyContent: "center", paddingTop: "50px" }}>
           <p style={{ textAlign: "left", maxWidth: "900px", width: "100%", color: "#b8b8b8" }}>How it works</p>
         </div>
 
-        {/* smart section spending*/}
+        {/* Smart spending section */}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", paddingTop: "10px" }}>
           <h2 style={{ fontSize: "40px", fontWeight: "500", display: "flex", gap: "8px", alignItems: "center", margin: 0 }}>
             Smart Spending tools for <span style={{ color: "#A78BFA" }}>students</span>
@@ -191,7 +192,7 @@ const monthlyIncome = transactions
         </div>
       </div>
 
-      {/* features grid */}
+      {/* Features grid */}
       <div className="features-grid">
         <Link to="/transactions" style={{ textDecoration: "none" }}>
           <div className="feature-card">
@@ -201,11 +202,13 @@ const monthlyIncome = transactions
           </div>
         </Link>
 
-        <div className="feature-card">
-          <FaWalletIcon className="feature-icon" />
-          <h2 className="feature-title">Shared Wallets</h2>
-          <p className="feature-text">Manage group expenses without stress.</p>
-        </div>
+        <Link to="/SharedWallet" style={{ textDecoration: "none" }}>
+          <div className="feature-card">
+            <FaWalletIcon className="feature-icon" />
+            <h2 className="feature-title">Shared Wallets</h2>
+            <p className="feature-text">Manage group expenses without stress.</p>
+          </div>
+        </Link>
 
         <Link to="/account" state={{ activeTab: "budget" }} style={{ textDecoration: "none" }}>
           <div className="feature-card">

@@ -3,7 +3,6 @@ import { FaUserCircle, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
-
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -19,42 +18,51 @@ const Signup = () => {
       document.body.style.overflow = "auto";
     };
   }, []);
- // ✅ Add handleSignUp here
- const handleSignUp = async (e) => {
-  e.preventDefault();
 
-  try {
-    const res = await fetch("http://localhost:5000/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        surname,
-        email,
-        password,
-      }),
-    });
+  const handleSignUp = async (e) => {
+    e.preventDefault();
 
-    if (!res.ok) {
-      const msg = await res.text();
-      alert(msg);
-      return;
+    try {
+      const res = await fetch("http://localhost:5000/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          surname,
+          email,
+          password,
+        }),
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        alert(msg);
+        return;
+      }
+
+      // ✅ Backend now returns JSON with userId
+      const data = await res.json();
+
+      // ✅ Save everything to localStorage so Dashboard works
+      localStorage.setItem("user", JSON.stringify({
+        id: data.userId,
+        name: data.name,
+        surname: data.surname,
+        email: data.email,
+      }));
+
+      navigate("/dashboard");
+
+    } catch (err) {
+      console.error(err);
+      alert("Signup failed");
     }
-
-    // ✅ SUCCESS → redirect to dashboard
-    navigate("/dashboard");
-
-  } catch (err) {
-    console.error(err);
-    alert("Signup failed");
-  }
-};
+  };
 
   return (
     <>
-      {/* FULL PAGE BACKGROUND FIX */}
       <style>{`
         html, body, #root {
           margin: 0;
@@ -96,7 +104,6 @@ const Signup = () => {
               style={styles.input}
             />
 
-            {/* Password field wrapper FIXED */}
             <div style={styles.passwordWrapper}>
               <input
                 type={showPassword ? "text" : "password"}
@@ -138,25 +145,22 @@ const Signup = () => {
           </form>
         </div>
 
-        {/* AUTOFILL FIXES */}
         <style>{`
           input {
             color: #fff;
             caret-color: #fff;
             background-color: #01041E;
           }
-input[type="password"]::-webkit-textfield-decoration-container {
-    display: none;
-}
-input[type="password"]::-ms-reveal {
-    display: none;
-}
-
+          input[type="password"]::-webkit-textfield-decoration-container {
+            display: none;
+          }
+          input[type="password"]::-ms-reveal {
+            display: none;
+          }
           input::selection {
             background-color: #1F2F6E;
             color: #fff;
           }
-
           input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0px 1000px #01041E inset !important;
             -webkit-text-fill-color: #fff !important;
@@ -167,7 +171,6 @@ input[type="password"]::-ms-reveal {
   );
 };
 
-
 const styles = {
   container: {
     display: "flex",
@@ -177,24 +180,19 @@ const styles = {
     fontFamily: "Arial, sans-serif",
   },
 
-loginContainer: {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "flex-start",
-
-  width: "400px",
-  height: "550px",       // ★ grows if needed, but doesn't blow up
-
-  background: "#0B1534",
-  border: "1px solid #1F2F6E",
-  borderRadius: "30px",
-  padding: "40px 20px",
-
-  boxShadow: "0 8px 20px rgba(0, 0, 0, 0.3)",
-},
-
-
+  loginContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "400px",
+    height: "550px",
+    background: "#0B1534",
+    border: "1px solid #1F2F6E",
+    borderRadius: "30px",
+    padding: "40px 20px",
+    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.3)",
+  },
 
   form: {
     marginTop: "35px",
@@ -212,7 +210,7 @@ loginContainer: {
     fontSize: "18px",
     color: "#fff",
     width: "90%",
-    height:"30%"
+    height: "30%",
   },
 
   passwordWrapper: {
@@ -254,7 +252,7 @@ loginContainer: {
     border: "1px solid #1F2F6E",
     display: "flex",
     justifyContent: "center",
-    cursor:"pointer"
+    cursor: "pointer",
   },
 };
 

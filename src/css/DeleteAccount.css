@@ -1,0 +1,144 @@
+
+
+.delete-title {
+  color: #a78bfa;
+  font-size: 20px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.delete-subtitle {
+  color: #9ca3af;
+  font-size: 14px;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.delete-card {
+  border-radius: 12px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.delete-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.delete-label {
+  font-size: 14px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.delete-input {
+  background: #01041E;
+  border: 1px solid #2d2d52;
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.delete-input:focus {
+  border-color: #a78bfa;
+}
+
+.delete-input::placeholder {
+  color: #4b5563;
+}
+
+.delete-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #01041E inset !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+.delete-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.delete-checkbox {
+  accent-color: #a78bfa;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.delete-checkbox-label {
+  font-size: 14px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.delete-error {
+  color: #f87171;
+  font-size: 13px;
+  margin: 0;
+  background: #1f0a0a;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.delete-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #1f0a0a;
+  border: 1px solid #991b1b;
+  color: #6b7280;
+  border-radius: 8px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: not-allowed;
+  transition: all 0.3s ease;
+  width: 100%;
+  letter-spacing: 0.3px;
+}
+
+.delete-btn.active {
+  background: #7f1d1d;
+  color: white;
+  cursor: pointer;
+}
+
+.delete-btn.active:hover {
+  background: #991b1b;
+}
+
+.delete-warning-box {
+  background: #1a0f0f;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+text-align: center;
+}
+
+.delete-warning-icon {
+  color: #f87171;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.delete-warning-text {
+  color: #fca5a5;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  text-align: center;
+}

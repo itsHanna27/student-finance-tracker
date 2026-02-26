@@ -18,7 +18,7 @@ router.post('/create-wallet', async (req, res) => {
     const newWallet = new SharedWallet({ title, members, splitType, last, balanceLeft, paid, createdBy });
     await newWallet.save();
 
-    // ── Notify all members except the creator that they were added ──
+    //  Notify all members except the creator that they were added 
     const creator = members.find(m => m.id === createdBy);
     const creatorName = creator?.name || "Someone";
 

@@ -2,10 +2,35 @@ import React, { useState } from "react";
 import "./AddTransaction.css";
 import "./editTransaction.css";
 
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+const detectActiveTerm = (payments) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let lastPassed = -1;
+  payments.forEach((p, i) => {
+    if (p.date && new Date(p.date) <= today) lastPassed = i;
+  });
+  if (lastPassed === -1) return 0;
+  return lastPassed;
+};
+
+const fmt = (digits) => {
+  if (!digits) return "£0.00";
+  return "£" + (parseFloat(digits) / 100).toFixed(2);
+};
+
+const toDigits = (amount) =>
+  Math.round(Math.abs(amount || 0) * 100).toString();
+
+// ── component ─────────────────────────────────────────────────────────────────
+
 const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
   const {
+    _id,
     id,
-    type: initialType,
+    _sfTermIndex,
+    type: rawType,
     date: initialDate,
     category: initialCategory,
     description: initialDescription,
@@ -13,20 +38,28 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
     studentFinancePayments = [],
   } = transaction;
 
-  const [type, setType] = useState(initialType || "expense");
+  // ── KEY FIX: normalise type casing ──
+  // DB stores "studentfinance" (lowercase), but our UI uses "studentFinance"
+  // Without this the modal defaults to "expense" because no case matches
+  const normaliseType = (t) => {
+    if (!t) return "expense";
+    if (t.toLowerCase() === "studentfinance") return "studentFinance";
+    return t;
+  };
+
+  const [type, setType] = useState(normaliseType(rawType));
   const [date, setDate] = useState(initialDate || "");
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || "");
   const [customCategory, setCustomCategory] = useState("");
   const [description, setDescription] = useState(initialDescription || "");
-  const [amountDigits, setAmountDigits] = useState(
-    Math.round(Math.abs(initialAmount || 0) * 100).toString()
-  );
+  const [amountDigits, setAmountDigits] = useState(toDigits(initialAmount));
 
-  const [studentFinanceTerms, setStudentFinanceTerms] = useState(
+  // ── student finance state ──
+  const [sfTerms, setSfTerms] = useState(
     studentFinancePayments.length === 3
-      ? studentFinancePayments.map(p => ({
+      ? studentFinancePayments.map((p) => ({
           date: p.date || "",
-          amountDigits: Math.round(Math.abs(p.amount || 0) * 100).toString(),
+          amountDigits: toDigits(p.amount),
         }))
       : [
           { date: "", amountDigits: "" },
@@ -35,83 +68,102 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
         ]
   );
 
+  const [activeTermIdx, setActiveTermIdx] = useState(() => {
+    if (_sfTermIndex !== undefined) return _sfTermIndex;
+    return detectActiveTerm(
+      studentFinancePayments.length === 3
+        ? studentFinancePayments
+        : [{ date: "" }, { date: "" }, { date: "" }]
+    );
+  });
+
+  // ── misc ──
   const today = new Date().toISOString().split("T")[0];
-  const allowFutureDate =
-    type === "subscription" || type === "house" || type === "studentFinance";
+  const allowFutureDate = ["subscription", "house", "studentFinance"].includes(type);
 
   const categories = {
     expense: ["Laundry", "Food", "Travel", "Nightlife / Social", "Groceries", "School Stuff", "Other"],
     income: ["Job", "Allowance", "Freelance", "Scholarship", "Gift", "Other"],
     house: ["House Rent", "Bills"],
     studentFinance: ["Student Finance"],
-  }[type];
+  }[type] || [];
 
-  // ====== FORMAT AMOUNT INPUT AS £0.00 ======
-  const formatAmountDisplay = () => {
-    if (!amountDigits) return "£0.00";
-    const num = parseFloat(amountDigits) / 100;
-    return "£" + num.toFixed(2);
-  };
-
+  // ── handlers ──
   const handleAmountChange = (e) => {
-    let value = e.target.value.replace(/\D/g, ""); 
-    if (value.length > 10) value = value.slice(0, 10); 
-    setAmountDigits(value);
+    let v = e.target.value.replace(/\D/g, "");
+    if (v.length > 10) v = v.slice(0, 10);
+    setAmountDigits(v);
   };
 
-  // student finance
-  const formatTermAmount = (digits) => {
-    if (!digits) return "£0.00";
-    const num = parseFloat(digits) / 100;
-    return "£" + num.toFixed(2);
+  const handleSfAmountChange = (e) => {
+    let v = e.target.value.replace(/\D/g, "");
+    if (v.length > 10) v = v.slice(0, 10);
+    const copy = [...sfTerms];
+    copy[activeTermIdx] = { ...copy[activeTermIdx], amountDigits: v };
+    setSfTerms(copy);
   };
 
-  const handleTermAmountChange = (index, e) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length > 10) value = value.slice(0, 10);
-    const copy = [...studentFinanceTerms];
-    copy[index].amountDigits = value;
-    setStudentFinanceTerms(copy);
+  const handleSfDateChange = (e) => {
+    const copy = [...sfTerms];
+    copy[activeTermIdx] = { ...copy[activeTermIdx], date: e.target.value };
+    setSfTerms(copy);
   };
+
+  const sfTotal = sfTerms.reduce(
+    (sum, t) => sum + (parseFloat(t.amountDigits) / 100 || 0),
+    0
+  );
 
   const handleSave = () => {
+    // Strip synthetic/display-only fields before sending to backend
+    const { _sfTermIndex: _a, description: _b, category: _c, date: _d, amount: _e, ...baseTransaction } = transaction;
+
     let payload;
     if (type === "studentFinance") {
       payload = {
-        ...transaction,
-        studentFinancePayments: studentFinanceTerms.map(t => ({
+        ...baseTransaction,
+        _id,
+        type: "studentfinance",  // keep lowercase to match DB schema
+        studentFinancePayments: sfTerms.map((t) => ({
           date: t.date,
           amount: parseFloat(t.amountDigits) / 100 || 0,
         })),
-        amount: studentFinanceTerms.reduce(
-          (sum, t) => sum + (parseFloat(t.amountDigits) / 100 || 0),
-          0
-        ),
+        amount: sfTotal,
       };
     } else {
       const calculatedAmount = parseFloat(amountDigits) / 100;
       payload = {
-        ...transaction,
-        _id: transaction._id,
+        ...baseTransaction,
+        _id,
         type,
         date,
         category: selectedCategory === "Other" ? customCategory : selectedCategory,
         description,
-        amount:
-          type === "expense" || type === "subscription" || type === "house"
-            ? -Math.abs(calculatedAmount)
-            : Math.abs(calculatedAmount),
+        amount: ["expense", "subscription", "house"].includes(type)
+          ? -Math.abs(calculatedAmount)
+          : Math.abs(calculatedAmount),
       };
     }
     onSave(payload);
   };
 
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    const transactionId = _id || id;
+    if (!transactionId) {
+      console.error("No transaction ID found for delete");
+      return;
+    }
+    onDelete(transactionId);
+  };
+
+  // ── render ────────────────────────────────────────────────────────────────
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">Edit Transaction</h2>
         <button className="close-btn" onClick={onClose}>close</button>
-        
+
         {/* Date & Type */}
         <div className="row-2">
           {type !== "studentFinance" && (
@@ -125,7 +177,6 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
               />
             </div>
           )}
-
           <div className="input-group">
             <label>Type</label>
             <select
@@ -145,7 +196,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
           </div>
         </div>
 
-        {/* Expense / Income */}
+        {/* Category (expense / income) */}
         {(type === "expense" || type === "income") && (
           <div className="input-group" style={{ marginTop: "-15px" }}>
             <label>Category</label>
@@ -155,7 +206,6 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
                 <option key={i} value={c}>{c}</option>
               ))}
             </select>
-
             {selectedCategory === "Other" && (
               <input
                 type="text"
@@ -168,7 +218,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
           </div>
         )}
 
-        {/* Description & Amount */}
+        {/* Description & Amount (non-SF) */}
         {type !== "studentFinance" && (
           <>
             <div className="input-group description-group">
@@ -179,64 +229,105 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-
             <div className="input-group" style={{ width: "87%", marginTop: "10px" }}>
               <label>Amount</label>
               <input
                 type="text"
                 placeholder="£0.00"
-                value={formatAmountDisplay()}
+                value={fmt(amountDigits)}
                 onChange={handleAmountChange}
               />
             </div>
           </>
         )}
 
-        {/* Student Finance */}
+        {/* ── Student Finance ── */}
         {type === "studentFinance" && (
-          <div>
-            <h3>Termly Payments</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {[1, 2, 3].map((term, index) => (
-                <div key={term} style={{ display: "flex", gap: "10px" }}>
-                  <input
-                    type="date"
-                    value={studentFinanceTerms[index].date}
-                    onChange={(e) => {
-                      const copy = [...studentFinanceTerms];
-                      copy[index].date = e.target.value;
-                      setStudentFinanceTerms(copy);
+          <div style={{ marginTop: "4px" }}>
+
+            {/* Opened from a specific row → just label, no tabs */}
+            {_sfTermIndex !== undefined ? (
+              <p style={{
+                fontWeight: 700,
+                color: "#9b7fd4",
+                marginBottom: "16px",
+                fontSize: "14px",
+                letterSpacing: "0.3px",
+              }}>
+                Term {_sfTermIndex + 1}
+              </p>
+            ) : (
+              <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                {[0, 1, 2].map((idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveTermIdx(idx)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: "0 0 4px 0",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: activeTermIdx === idx ? "#9b7fd4" : "#3e4060",
+                      borderBottom: activeTermIdx === idx ? "2px solid #9b7fd4" : "2px solid transparent",
+                      transition: "all 0.15s",
                     }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="£0.00"
-                    value={formatTermAmount(studentFinanceTerms[index].amountDigits)}
-                    onChange={(e) => handleTermAmountChange(index, e)}
-                  />
-                </div>
-              ))}
+                  >
+                    Term {idx + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="input-group">
+              <label>Payment Date</label>
+              <input
+              style={{width:"400px"}}
+                type="date"
+                value={sfTerms[activeTermIdx].date}
+                onChange={handleSfDateChange}
+              />
             </div>
+            <div className="input-group" style={{ marginTop: "10px", width: "87%" }}>
+              <label>Amount</label>
+              <input
+              style={{width:"400px"}}
+                type="text"
+                placeholder="£0.00"
+                value={fmt(sfTerms[activeTermIdx].amountDigits)}
+                onChange={handleSfAmountChange}
+              />
+            </div>
+
+            {_sfTermIndex === undefined && (
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: "16px",
+                padding: "10px 14px",
+                background: "rgba(155,127,212,0.08)",
+                borderRadius: "8px",
+                border: "1px solid rgba(155,127,212,0.2)"
+              }}>
+                <span style={{ fontSize: "12px", color: "#6b6e85", fontWeight: 600 }}>
+                  Total across all terms
+                </span>
+                <span style={{ fontSize: "15px", fontWeight: 700, color: "#9b7fd4" }}>
+                  £{sfTotal.toFixed(2)}
+                </span>
+              </div>
+            )}
+
           </div>
         )}
 
         <div className="btn-row">
-          <button
-            type="button"
-            className="confirm-btn"
-            onClick={handleSave} 
-          >
+          <button type="button" className="confirm-btn" onClick={handleSave}>
             Save
           </button>
-
-          <button
-            type="button"
-            className="delete-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(transaction._id);
-            }}
-          >
+          <button type="button" className="delete-btn" onClick={handleDelete}>
             🗑 Delete
           </button>
         </div>

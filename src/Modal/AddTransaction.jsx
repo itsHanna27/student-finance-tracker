@@ -3,7 +3,7 @@ import "./AddTransaction.css";
 
 const SF_KEY = "unibudget_student_finance";
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+//Helpers 
 
 /** Returns true if a recurring transaction is due within the next 3 days */
 export const isDue = (startDateStr, frequency) => {
@@ -52,7 +52,7 @@ const saveRecurring = (transaction) => {
   } catch {}
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// Component
 
 const AddTransaction = ({ onClose, onAddTransaction, setTransactions, setShowEdit }) => {
   const [type, setType] = useState("expense");
@@ -145,7 +145,7 @@ const AddTransaction = ({ onClose, onAddTransaction, setTransactions, setShowEdi
       : Math.abs(amt);
   };
 
-  // ── Validation ──────────────────────────────────────────────────────────────
+  // Validation 
 
   const validate = () => {
     if (type !== "studentFinance" && !date) {
@@ -265,7 +265,7 @@ const AddTransaction = ({ onClose, onAddTransaction, setTransactions, setShowEdi
     }
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // Render
 
   const isRecurring = type === "subscription" || type === "house";
 

@@ -7,24 +7,86 @@ import AddFriends from "./addFriends";
 import FriendRequest from "./friendrequest";
 import BudgetandSaving from "./BudgetandSaving";
 import Transactions from "./Transactions";
+import DeleteAccount from "./DeleteAccount";
 import "../css/Account.css";
 
-const ProfileSection = ({ user, avatar, setFile }) => {
+const ProfileSection = ({ user, avatar, setFile, setUser }) => {
+  const [editMode, setEditMode] = useState(false);
+  const [name, setName] = useState(user.name || "");
+  const [surname, setSurname] = useState(user.surname || "");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handleSave = async () => {
+    setError("");
+    setSuccess("");
+
+    if (!name.trim() || !surname.trim()) {
+      setError("Name and surname cannot be empty.");
+      return;
+    }
+
+    if (password && password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/update-profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          name,
+          surname,
+          password: password || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        setError(msg);
+        return;
+      }
+
+      const updatedUser = await res.json();
+      const newUser = { ...user, name: updatedUser.name, surname: updatedUser.surname };
+      localStorage.setItem("user", JSON.stringify(newUser));
+      setUser(newUser);
+      setSuccess("Profile updated successfully!");
+      setPassword("");
+      setConfirmPassword("");
+      setEditMode(false);
+
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    }
+  };
+
+  const handleCancel = () => {
+    setName(user.name);
+    setSurname(user.surname);
+    setPassword("");
+    setConfirmPassword("");
+    setError("");
+    setSuccess("");
+    setEditMode(false);
+  };
+
   return (
     <>
-      <h3 style={{ color: "#A78BFA", fontSize: "18px" }}>Profile</h3>
+      <h3 className="profile-title">Profile</h3>
+
       <div className="profile-header">
         <div className="avatar">
           {avatar ? (
             <img
               src={avatar}
               alt="Avatar"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "50%",
-              }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
             />
           ) : (
             user.name?.charAt(0).toUpperCase()
@@ -41,48 +103,112 @@ const ProfileSection = ({ user, avatar, setFile }) => {
           />
           <button
             className="upload-btn"
-            onClick={() =>
-              document.getElementById("avatarUpload").click()
-            }
+            onClick={() => document.getElementById("avatarUpload").click()}
           >
             Upload new picture
           </button>
         </div>
       </div>
+
       <div className="profile-info">
+
+        {/* Email — never editable */}
         <div>
           <span>Email</span>
           <p>{user.email}</p>
         </div>
+
+        {/* Name */}
         <div>
           <span>Name</span>
-          <p>{user.name}</p>
+          {editMode ? (
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="profile-input"
+            />
+          ) : (
+            <p>{user.name}</p>
+          )}
         </div>
+
+        {/* Surname */}
         <div>
           <span>Surname</span>
-          <p>{user.surname}</p>
+          {editMode ? (
+            <input
+              value={surname}
+              onChange={(e) => setSurname(e.target.value)}
+              className="profile-input"
+            />
+          ) : (
+            <p>{user.surname}</p>
+          )}
         </div>
+
+        {/* Password — only shows in edit mode */}
+        {editMode && (
+          <>
+            <div>
+              <span>New Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Leave blank to keep current"
+                className="profile-input"
+              />
+            </div>
+            <div>
+              <span>Confirm Password</span>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat new password"
+                className="profile-input"
+              />
+            </div>
+          </>
+        )}
+
+        {/* User ID */}
         <div>
           <span>User ID</span>
           <p>{user.id}</p>
-           <button
-                      className="copy-btn"
-                      style={{
-                        borderRadius: "30px",
-                        border: "none",
-                        background: "#5d6079ff",
-                        width: "60px",
-                        height: "25px",
-                        alignSelf: "center",
-                      }}
-                      onClick={() => {
-                        navigator.clipboard.writeText(user.id);
-                        alert("ID copied");
-                      }}
-                    >
-                      copy
-                    </button>
+          <button
+            className="copy-btn"
+            onClick={() => {
+              navigator.clipboard.writeText(user.id);
+              alert("ID copied");
+            }}
+          >
+            copy
+          </button>
         </div>
+
+      </div>
+
+      {/* Error / Success messages */}
+      {error && <p className="profile-error">{error}</p>}
+      {success && <p className="profile-success">{success}</p>}
+
+      {/* Edit / Save / Cancel buttons */}
+      <div className="profile-buttons">
+        {!editMode ? (
+          <button onClick={() => setEditMode(true)} className="edit-btn">
+            Edit Profile
+          </button>
+        ) : (
+          <>
+            <button onClick={handleSave} className="save-btn">
+              Save Changes
+            </button>
+            <button onClick={handleCancel} className="cancel-btn">
+              Cancel
+            </button>
+          </>
+        )}
       </div>
     </>
   );
@@ -96,7 +222,6 @@ const Account = () => {
   const [avatar, setAvatar] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Check if navigated with a specific tab to open
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveTab(location.state.activeTab);
@@ -192,9 +317,13 @@ const Account = () => {
 
           <div className="account-card">
             {activeTab === "profile" && (
-              <ProfileSection user={user} avatar={avatar} setFile={setFile} />
+              <ProfileSection
+                user={user}
+                avatar={avatar}
+                setFile={setFile}
+                setUser={setUser}
+              />
             )}
-
             {activeTab === "friends" && <Friends />}
             {activeTab === "addFriends" && <AddFriends />}
             {activeTab === "friendrequest" && <FriendRequest />}
@@ -204,6 +333,7 @@ const Account = () => {
             {activeTab === "transactions" && (
               <Transactions setActiveTab={setActiveTab} />
             )}
+            {activeTab === "deleteAccount" && <DeleteAccount />}
           </div>
         </div>
       </div>

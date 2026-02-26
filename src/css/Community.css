@@ -1,0 +1,297 @@
+/* Header */
+.community-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.community-title {
+  font-weight: 600;
+  color: #A78BFA;
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.community-subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 15px;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Container */
+.community-container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Search */
+.search-wrapper {
+  position: relative;
+  margin-bottom: 28px;
+}
+
+.search-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #1d214179;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: rgba(167, 139, 250, 0.5);
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Compose */
+.compose-box {
+  background: #01041E;
+  border: 1px solid #A78BFA;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 32px;
+}
+
+.compose-label {
+  color: #A78BFA;
+  font-size: 20px;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.compose-title-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #01041E;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+.compose-title-input:focus {
+  border-color: rgba(167, 139, 250, 0.6);
+}
+
+.compose-title-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.compose-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #01041E;
+  border: none;
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+}
+
+.compose-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.compose-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.post-btn {
+  background: #A78BFA;
+  border: 1px solid white;
+  border-radius: 10px;
+  padding: 5px 25px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.post-btn:hover {
+  background: #856dcb;
+}
+
+/* Feed — multi-column masonry style */
+.posts-grid {
+  columns: 3;
+  column-gap: 14px;
+}
+
+.posts-grid .card {
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 700px) {
+  .posts-grid {
+    columns: 2;
+  }
+}
+
+@media (max-width: 460px) {
+  .posts-grid {
+    columns: 1;
+  }
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 40px;
+}
+
+/* Card — Reddit style */
+.card {
+  background: #01041E;
+  border: 1px solid #2a2d4a;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s;
+  cursor: default;
+}
+
+.card:hover {
+  border-color: #A78BFA;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-name {
+  font-weight: 600;
+  font-size: 13px;
+  font-family: 'Poppins', sans-serif;
+  color: #A78BFA;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.4;
+}
+
+.card-text {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Vote group — like/dislike share one pill */
+.vote-group {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.vote-group .vote-btn {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 5px 12px;
+}
+
+.vote-group .vote-btn:first-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vote-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 5px 14px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.15s;
+}
+
+.vote-btn i {
+  font-size: 12px;
+}
+
+.vote-btn.liked {
+  background: rgba(120, 80, 255, 0.25);
+  color: #A78BFA;
+}
+
+.vote-btn.disliked {
+  background: rgba(255, 70, 70, 0.18);
+  color: #ff6b6b;
+}
+
+/* Comment button —  */
+.comment-btn {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  margin-left: 12px;
+  padding: 5px 14px;
+}
+
+.comment-btn:hover {
+  background: rgba(167, 139, 250, 0.12);
+  border-color: rgba(167, 139, 250, 0.35);
+  color: #A78BFA;
+}
+
+/* Avatar */
+.avatar2 {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #5b3fa6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  flex-shrink: 0;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.5px;
+}

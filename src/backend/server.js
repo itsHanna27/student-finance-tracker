@@ -35,7 +35,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
@@ -75,7 +74,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Signup route
+// ✅ Signup route — now returns userId and user info as JSON
 app.post("/signup", async (req, res) => {
   try {
     const { name, surname, email, password } = req.body;
@@ -92,12 +91,21 @@ app.post("/signup", async (req, res) => {
     });
 
     await user.save();
-    res.send("User registered successfully!");
+
+
+    res.json({
+      userId: user._id,
+      name: user.name,
+      surname: user.surname,
+      email: user.email,
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");
   }
 });
+
 
 // Login route
 app.post("/login", async (req, res) => {
@@ -120,6 +128,55 @@ app.post("/login", async (req, res) => {
         avatar: user.avatar || "",
       },
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+app.delete("/delete-account", async (req, res) => {
+  try {
+    const { userId, password } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).send("User not found");
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).send("Incorrect password");
+
+    await User.findByIdAndDelete(userId);
+
+    res.send("Account deleted successfully");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+app.put("/update-profile", async (req, res) => {
+  try {
+    const { userId, name, surname, password } = req.body;
+
+    const updateFields = { name, surname };
+
+    // Only update password if they provided one
+    if (password) {
+      const hashed = await bcrypt.hash(password, 10);
+      updateFields.password = hashed;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateFields,
+      { new: true }
+    );
+
+    res.json({
+      id: updatedUser._id,
+      name: updatedUser.name,
+      surname: updatedUser.surname,
+      email: updatedUser.email,
+      avatar: updatedUser.avatar || "",
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");

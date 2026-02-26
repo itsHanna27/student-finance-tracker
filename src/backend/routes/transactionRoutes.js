@@ -15,7 +15,14 @@ const recalculateUserBalance = async (userId) => {
 
     const totalBalance = transactions.reduce((sum, t) => {
       const type = t.type?.toLowerCase();
-      if (type === "studentfinance") return sum;
+
+      if (type === "studentfinance") {
+        const duePayments = (t.studentFinancePayments || []).filter(
+          p => p.date && new Date(p.date) <= today
+        );
+        return sum + duePayments.reduce((s, p) => s + (p.amount || 0), 0);
+      }
+
       return sum + (t.amount || 0);
     }, 0);
 
@@ -48,7 +55,7 @@ router.post("/transactions", async (req, res) => {
   }
 });
 
-// get all transactions
+// Get all transactions
 router.get("/transactions/all", async (req, res) => {
   try {
     const userId = req.query.userId;
@@ -61,18 +68,13 @@ router.get("/transactions/all", async (req, res) => {
   }
 });
 
-// Get transactions for table
+// Get transactions
 router.get("/transactions", async (req, res) => {
   try {
     const userId = req.query.userId;
     if (!userId) return res.status(400).json({ message: "userId is required" });
-
     const transactions = await Transaction.find({ userId }).sort({ createdAt: -1 });
-
-    // never shows studenet finance on table
-    const filtered = transactions.filter((t) => t.type?.toLowerCase() !== "studentfinance");
-
-    res.json(filtered);
+    res.json(transactions);
   } catch (err) {
     console.error("Error fetching transactions:", err);
     res.status(500).json({ message: "Failed to fetch transactions" });
@@ -83,6 +85,7 @@ router.get("/transactions", async (req, res) => {
 router.delete("/transactions/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("DELETE request for transaction id:", id); // debug log
     const transaction = await Transaction.findById(id);
     if (!transaction) return res.status(404).json({ message: "Transaction not found" });
     const userId = transaction.userId;
@@ -99,8 +102,19 @@ router.delete("/transactions/:id", async (req, res) => {
 router.put("/transactions/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedData = req.body;
-    const updatedTransaction = await Transaction.findByIdAndUpdate(id, updatedData, { new: true });
+    console.log("PUT request for transaction id:", id); // debug log
+
+    // Strip any synthetic/display-only fields the frontend may have attached
+    const {
+      _sfTermIndex,       // synthetic field added by frontend for SF rows
+      description: _desc, // re-added cleanly below if needed
+      ...rest
+    } = req.body;
+
+    // Normalise type to lowercase to match DB schema
+    if (rest.type) rest.type = rest.type.toLowerCase();
+
+    const updatedTransaction = await Transaction.findByIdAndUpdate(id, rest, { new: true });
     if (!updatedTransaction) return res.status(404).json({ message: "Transaction not found" });
     await recalculateUserBalance(updatedTransaction.userId);
     res.json(updatedTransaction);

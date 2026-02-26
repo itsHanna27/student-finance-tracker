@@ -48,7 +48,7 @@ const formatDays = (days) => {
   return `in ${days} days`;
 };
 
-// ── localStorage helpers ──────────────────────────────────────────────────────
+//localStorage helpers
 const getDismissed = () => {
   try { return new Set(JSON.parse(localStorage.getItem("unibudget_dismissed_notifs") || "[]")); }
   catch { return new Set(); }
@@ -92,13 +92,13 @@ const Navbar = () => {
 
       if (currentUser.id) {
 
-        // ── 1. DB notifications (friend requests, wallet) ──────────────────
+        //  DB notifications (friend requests, wallet) 
         try {
           const notifRes = await fetch(`http://localhost:5000/notifications/${currentUser.id}`);
           const dbNotifs = await notifRes.json();
           if (Array.isArray(dbNotifs)) {
             dbNotifs.forEach((n) => {
-              if (dismissed.has(n._id)) return; // skip dismissed
+              if (dismissed.has(n._id)) return; 
               built.push({
                 id: n._id,
                 dbId: n._id,
@@ -113,7 +113,7 @@ const Navbar = () => {
           }
         } catch (e) { console.error("Failed to fetch DB notifications:", e); }
 
-        // ── 2. Transactions ────────────────────────────────────────────────
+        // Transactions
         try {
           const txRes = await fetch(`http://localhost:5000/transactions?userId=${currentUser.id}`);
           const transactions = await txRes.json();

@@ -44,6 +44,12 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
         Budgeting and Saving
       </li>
 
+  <li
+        className={activeTab === "deleteAccount" ? "active" : ""}
+        onClick={() => setActiveTab("deleteAccount")}
+      >
+        Delete Account
+      </li>
 
         
       </ul>

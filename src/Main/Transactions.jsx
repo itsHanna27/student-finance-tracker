@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaPlus, FaEdit, FaFilter, FaCreditCard, FaExclamationTriangle } from "react-icons/fa";
 import Navbar from "../Navbar/Navbar";
@@ -10,6 +10,7 @@ import EditTransaction from "../Modal/editTransaction";
 import AddTransaction from "../Modal/AddTransaction";
 import Congrats from "../Modal/congrats";
 import Bestie from "../Modal/bestie";
+import Filter from "../Modal/filter";
 
 import {
   ResponsiveContainer,
@@ -47,16 +48,30 @@ const Transactions = () => {
   const [dismissedBudgetAlerts, setDismissedBudgetAlerts] = useState({});
   const [budgetAlertData, setBudgetAlertData] = useState(null);
   const [isEditBalanceOpen, setIsEditBalanceOpen] = useState(false);
-
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({ types: [], startDate: "", endDate: "" });
+  const [selectedFilterTypes, setSelectedFilterTypes] = useState([]);
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
+  const filterRef = useRef(null);
   const currentUser = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
 
-  // which goal to show based on current view and period toggle
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const currentGoal = goalView === "saving"
     ? savingGoals[periodFilter]
     : budgetGoals[periodFilter];
 
-  // Calculates how much has been spent within the budget goal's time window
   const calculateBudgetSpent = () => {
     const budgetGoal = budgetGoals[periodFilter];
     if (!budgetGoal) return 0;
@@ -74,30 +89,29 @@ const Transactions = () => {
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   };
 
-  // Caps progress at the goal amount so the bar never overflows
   const goalSaved = goalView === "saving"
     ? Math.min(currentGoal?.currentSaved || 0, currentGoal?.amount || 0)
     : Math.min(calculateBudgetSpent(), currentGoal?.amount || 0);
 
   const progress = currentGoal ? (goalSaved / currentGoal.amount) * 100 : 0;
 
-  // Uncapped version used to show if you've gone over budget 
   const actualProgress = goalView === "saving"
     ? (currentGoal?.currentSaved || 0)
     : calculateBudgetSpent();
 
-  // Shows the congrats modal if a saving goal has been reached
   const checkGoalReached = () => {
     if (goalView !== "saving") return;
     if (!currentGoal || currentGoal.congratsShown) return;
+    const shownKey = `congrats_shown_${currentGoal._id}`;
+    if (localStorage.getItem(shownKey)) return;
     if (currentGoal.currentSaved >= currentGoal.amount) {
+      localStorage.setItem(shownKey, "true");
       setCongratsData({ goalAmount: currentGoal.amount, period: periodFilter, streak: currentGoal.streak || 1 });
       setShowCongratsModal(true);
       markCongratsAsShown(currentGoal._id);
     }
   };
 
-  // Shows a warning banner if spending hits 80% of  budget
   const checkBudgetWarning = () => {
     ["weekly", "monthly"].forEach((period) => {
       const budgetGoal = budgetGoals[period];
@@ -130,7 +144,6 @@ const Transactions = () => {
     });
   };
 
-  // Marks congrats as shown in DB so it doesn't pop up again on refresh
   const markCongratsAsShown = async (goalId) => {
     try {
       await fetch(`http://localhost:5000/transactions/${goalId}`, {
@@ -143,22 +156,19 @@ const Transactions = () => {
     }
   };
 
-  // Fetches balance from backend
   useEffect(() => {
     if (!currentUser?.id) return;
     fetch(`http://localhost:5000/api/balance?userId=${currentUser.id}`)
       .then(res => res.json())
-      .then(data => setBalance(data.balance))
+      .then(data => setBalance(data.balance ?? 0))
       .catch(err => console.error("Failed to fetch balance:", err));
   }, [currentUser?.id]);
 
-  // Check goal and budget warning whenever transactions or goal changes
   useEffect(() => {
     checkGoalReached();
     checkBudgetWarning();
   }, [currentGoal, transactions, goalView]);
 
-  // Returns true if a goal's time period has fully expired
   const isGoalExpired = (startDate, period) => {
     if (!startDate) return false;
     const start = new Date(startDate);
@@ -168,7 +178,6 @@ const Transactions = () => {
     return Math.ceil(diffInMs / (1000 * 60 * 60 * 24)) <= 0;
   };
 
-  // Deletes an expired goal from the DB automatically
   const autoDeleteIfExpired = async (goal) => {
     if (!goal || !goal.startDate) return false;
     if (isGoalExpired(goal.startDate, goal.period)) {
@@ -183,7 +192,6 @@ const Transactions = () => {
     return false;
   };
 
-  // Fetches saving and budget goals, auto-deletes any expired ones
   const fetchSavingGoal = async () => {
     try {
       setIsLoadingGoal(true);
@@ -213,26 +221,23 @@ const Transactions = () => {
     }
   };
 
-  // Fetch goals on mount, then re-check every 60 seconds 
   useEffect(() => { fetchSavingGoal(); }, []);
   useEffect(() => {
     const intervalId = setInterval(fetchSavingGoal, 60000);
     return () => clearInterval(intervalId);
   }, []);
 
-  // fetches balance from backend
   const recalculateBalance = async () => {
     if (!currentUser?.id) return;
     try {
       const res = await fetch(`http://localhost:5000/api/balance?userId=${currentUser.id}`);
       const data = await res.json();
-      setBalance(data.balance);
+      setBalance(data.balance ?? 0);
     } catch (err) {
       console.error("Failed to fetch balance:", err);
     }
   };
 
-  // Fetches all transactions for this user on mount
   useEffect(() => {
     const fetchTransactions = async () => {
       const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -249,21 +254,17 @@ const Transactions = () => {
     fetchTransactions();
   }, []);
 
-  // Adds a new transaction to local state and refreshes balance
   const handleAddTransaction = (newTransaction) => {
-    const type = newTransaction.type?.toLowerCase();
-    if (type === "studentfinance") { recalculateBalance(); return; }
     setTransactions((prev) => [...prev, newTransaction]);
     recalculateBalance();
   };
 
-  // Filters transactions as user types in the search bar
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
     const filtered = transactions.filter((t) => {
       const type = t.type?.toLowerCase();
-      if (type === "saving" || type === "budget" || type === "studentfinance") return false;
+      if (type === "saving" || type === "budget") return false;
       return (
         (t.category?.toLowerCase() || "").includes(value) ||
         (t.description?.toLowerCase() || "").includes(value) ||
@@ -273,16 +274,54 @@ const Transactions = () => {
     setFilteredTransactions(filtered);
   };
 
-  // Keeps the table in sync whenever transactions change, excluding internal types
   useEffect(() => {
-    const filtered = transactions.filter((t) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Regular transactions (no saving/budget)
+    const regular = transactions.filter((t) => {
       const type = t.type?.toLowerCase();
       return type !== "saving" && type !== "budget" && type !== "studentfinance";
     });
-    setFilteredTransactions(filtered);
-  }, [transactions]);
 
-  // Saves an edited transaction to the backend and updates local state
+    // Expand studentFinancePayments into individual rows, only if due
+    // ── FIX: carry real _id + _sfTermIndex so edit/delete work correctly ──
+    const sfRows = transactions
+      .filter(t => t.type?.toLowerCase() === "studentfinance")
+      .flatMap(t =>
+        (t.studentFinancePayments || [])
+          .filter(p => p.date && new Date(p.date) <= today)
+          .map((p, i) => ({
+         _id: t._id?.toString(),                      // real MongoDB _id for delete
+            _sfTermIndex: i,                          // which term this row is
+            type: "studentfinance",
+            category: "Student Finance",
+            description: `Term ${i + 1}`,
+            date: p.date,
+            amount: Math.abs(p.amount),
+            studentFinancePayments: t.studentFinancePayments, // needed by edit modal
+          }))
+      );
+
+    const base = [...regular, ...sfRows].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const { types, startDate, endDate } = activeFilters;
+    const hasFilter = types.length > 0 || startDate || endDate;
+
+    if (!hasFilter) {
+      setFilteredTransactions(base);
+      return;
+    }
+
+    setFilteredTransactions(base.filter((t) => {
+      const type = t.type?.toLowerCase();
+      if (types.length > 0 && !types.includes(type)) return false;
+      if (startDate && new Date(t.date) < new Date(startDate)) return false;
+      if (endDate && new Date(t.date) > new Date(endDate)) return false;
+      return true;
+    }));
+  }, [transactions, activeFilters]);
+
   const handleUpdateTransaction = async (updatedTransaction) => {
     try {
       const res = await fetch(`http://localhost:5000/transactions/${updatedTransaction._id}`, {
@@ -301,7 +340,6 @@ const Transactions = () => {
     }
   };
 
-  // Deletes a transaction from the backend and removes it from local state
   const handleDeleteTransaction = async (id) => {
     try {
       const res = await fetch(`http://localhost:5000/transactions/${id}`, { method: "DELETE" });
@@ -315,23 +353,18 @@ const Transactions = () => {
     }
   };
 
-  // Pie chart slice colours
   const PIE_COLORS = ["#b387ff", "#f5a6ff", "#c45bff", "#f4caff", "#9b59b6"];
 
-  // Line chart data — builds weekly or monthly spending totals
   const lineData = React.useMemo(() => {
     if (lineChartPeriod === "weekly") {
       const days = [];
       const today = new Date();
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      // Loop through last 7 days, oldest first
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
-        // Set exact start and end of this day
         const dayStart = new Date(date); dayStart.setHours(0, 0, 0, 0);
         const dayEnd = new Date(date); dayEnd.setHours(23, 59, 59, 999);
-        // Filter to real expenses only, then add them up
         const daySpending = transactions
           .filter(t => {
             if (t.type === "saving" || t.type === "budget" || t.type === "income" || t.type === "studentFinance") return false;
@@ -346,12 +379,10 @@ const Transactions = () => {
     } else {
       const months = [];
       const today = new Date();
-      // Loop through last 12 months, oldest first
       for (let i = 11; i >= 0; i--) {
         const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
         const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
         const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-        // Filter to real expenses only, then add them up
         const monthSpending = transactions
           .filter(t => {
             if (t.type === "saving" || t.type === "budget" || t.type === "income" || t.type === "studentFinance") return false;
@@ -366,21 +397,17 @@ const Transactions = () => {
     }
   }, [transactions, lineChartPeriod]);
 
-  // Pie chart data — totals spending per category, top 5 shown + rest merged to "Other"
   const pieData = React.useMemo(() => {
     const categoryTotals = {};
     transactions.forEach((t) => {
       if (t.amount >= 0) return;
       if (t.type === "saving" || t.type === "budget" || t.type === "income" || t.type === "studentFinance") return;
       const category = t.category?.trim().toLowerCase() || "other";
-      // Check if house/bills related
       const isHouseBills = ["house_rent", "house rent", "rent", "bills", "utilities", "housing"].includes(category);
-      // Skip house/bills if user toggled them off
       if (!includeHouseRent && isHouseBills) return;
       const categoryName = t.category?.trim() || "Other";
       categoryTotals[categoryName] = (categoryTotals[categoryName] || 0) + Math.abs(t.amount);
     });
-    // Sort highest to lowest
     const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
     const topFive = sorted.slice(0, 5);
     const rest = sorted.slice(5);
@@ -391,22 +418,32 @@ const Transactions = () => {
     return data;
   }, [transactions, includeHouseRent]);
 
-  // Opens the edit balance modal
   const editBalance = () => setIsEditBalanceOpen(true);
+
+  const fmt = (val) => (Number(val) || 0).toFixed(2);
 
   return (
     <>
       <style>{`
-        html, body {
-          margin: 0; padding: 0;
+        html, body, #root {
+          margin: 0;
+          padding: 0;
           font-family: 'Poppins', sans-serif;
           background: linear-gradient(100deg, #111827, #0F0F1A);
-          color: white; width: 100%; min-height: 100%; overflow-x: hidden;
+          color: white;
+          width: 100%;
+          min-height: 100%;
+          overflow-x: hidden;
         }
         body::after {
-          content: ''; position: fixed; top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: linear-gradient(100deg, #111827, #0F0F1A); z-index: -1;
+          content: '';
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(100deg, #111827, #0F0F1A);
+          z-index: -1;
         }
       `}</style>
 
@@ -428,18 +465,17 @@ const Transactions = () => {
             View and manage all your recent income and expenses in one place.
           </p>
 
-          {/* Budget warning banner */}
           {showBudgetAlert && budgetAlertData && (
             <div className="budget-alert">
               <FaExclamationTriangle className="alert-icon" />
               <span>
                 {budgetAlertData.exceeded ? (
                   <>You've exceeded your {budgetAlertData.period} budget by{" "}
-                    <span style={{ color: "#ff5555", fontWeight: 700 }}>£{budgetAlertData.exceededBy.toFixed(2)}</span>
+                    <span style={{ color: "#ff5555", fontWeight: 700 }}>£{fmt(budgetAlertData.exceededBy)}</span>
                   </>
                 ) : (
                   <>Warning! You've used more than 80% of your {budgetAlertData.period} budget. Only{" "}
-                    <span style={{ color: "#ff0000", fontWeight: 600 }}>£{budgetAlertData.remaining.toFixed(2)}</span> remaining.
+                    <span style={{ color: "#ff0000", fontWeight: 600 }}>£{fmt(budgetAlertData.remaining)}</span> remaining.
                   </>
                 )}
               </span>
@@ -457,18 +493,16 @@ const Transactions = () => {
             <div className="small-card balance-card">
               <button onClick={editBalance} style={{ position: "absolute", left: "20px", background: "#01041E", color: "white", border: "1px solid white", padding: "8px 15px", borderRadius: "20px", cursor: "pointer" }} className="edit-btn">Edit</button>
               <h3>Current Balance</h3>
-              <p className="balance-amount">£{balance.toFixed(2)}</p>
+              <p className="balance-amount">£{fmt(balance)}</p>
               <p className="card-number">XXXX XXXX XXXX XXXX 3456</p>
             </div>
 
-            {/* Saving / Budget goal card */}
+            {/* Goal card */}
             <div style={{ width: "85vh" }} className="small-card goal-card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                {/* Toggles between weekly and monthly */}
                 <div className="goal-tag" onClick={() => setPeriodFilter(periodFilter === "weekly" ? "monthly" : "weekly")}>
                   {periodFilter === "weekly" ? "Weekly" : "Monthly"}
                 </div>
-                {/* Toggles between saving and budgeting views */}
                 <div className="goal-toggle">
                   <button className={`toggle-btn ${goalView === "budgeting" ? "active" : ""}`} onClick={() => setGoalView("budgeting")}>Budgeting</button>
                   <button className={`toggle-btn ${goalView === "saving" ? "active" : ""}`} onClick={() => setGoalView("saving")}>Saving</button>
@@ -478,7 +512,7 @@ const Transactions = () => {
               <h3>{goalView === "saving" ? "Saving Goal" : "Budget"}</h3>
               <p className="goal-sub">
                 {currentGoal
-                  ? currentGoal.title || `${goalView === "saving" ? "Save" : "Budget"} £${currentGoal.amount}`
+                  ? currentGoal.title || `${goalView === "saving" ? "Save" : "Budget"} £${fmt(currentGoal.amount)}`
                   : `No ${periodFilter} ${goalView} goal set yet`}
               </p>
 
@@ -486,12 +520,11 @@ const Transactions = () => {
                 <span>{goalView === "saving" ? "Progress" : "Spent"}</span>
                 <span>
                   <span style={goalView === "budgeting" && currentGoal && actualProgress > currentGoal.amount ? { color: "#ff5555" } : {}}>
-                    £{goalView === "budgeting" ? actualProgress.toFixed(2) : goalSaved.toFixed(2)}
-                  </span>/£{currentGoal ? currentGoal.amount.toFixed(2) : "0.00"}
+                    £{goalView === "budgeting" ? fmt(actualProgress) : fmt(goalSaved)}
+                  </span>/£{currentGoal ? fmt(currentGoal.amount) : "0.00"}
                 </span>
               </div>
 
-              {/* Progress bar + turns red if over budget */}
               <div className="progress-bar">
                 <div className="progress-fill" style={{
                   width: currentGoal ? `${Math.min(progress, 100)}%` : "0%",
@@ -530,7 +563,12 @@ const Transactions = () => {
               <Withdraw savingGoal={currentGoal} onUpdate={fetchSavingGoal} onClose={() => { setIsWithdrawOpen(false); fetchSavingGoal(); }} />
             )}
             {isEditTransactionOpen && currentEditTransaction && (
-              <EditTransaction transaction={currentEditTransaction} onClose={() => setIsEditTransactionOpen(false)} onSave={handleUpdateTransaction} onDelete={handleDeleteTransaction} />
+              <EditTransaction
+                transaction={currentEditTransaction}
+                onClose={() => setIsEditTransactionOpen(false)}
+                onSave={handleUpdateTransaction}
+                onDelete={handleDeleteTransaction}
+              />
             )}
             {isEditBalanceOpen && (
               <CurrentBalance balance={balance} setBalance={setBalance} onClose={() => setIsEditBalanceOpen(false)} onAddTransaction={handleAddTransaction} />
@@ -548,8 +586,6 @@ const Transactions = () => {
 
             {/* Charts */}
             <div className="charts-container">
-
-              {/* Line chart */}
               <div style={{ width: "600px" }} className="chart-card">
                 <h3 className="chart-title" style={{ marginBottom: "30px" }}>Spending Over Time</h3>
                 <div className="chart-tag" onClick={() => setLineChartPeriod(lineChartPeriod === "weekly" ? "monthly" : "weekly")} style={{ cursor: "pointer" }}>
@@ -563,14 +599,13 @@ const Transactions = () => {
                       contentStyle={{ backgroundColor: "#1c1c1e", borderRadius: "8px", border: "1px solid #b387ff" }}
                       labelStyle={{ color: "#fff" }}
                       itemStyle={{ color: "#fff" }}
-                      formatter={(value) => `£${Number(value).toFixed(2)}`}
+                      formatter={(value) => `£${fmt(value)}`}
                     />
                     <Line type="monotone" dataKey="value" stroke="#d08cff" strokeWidth={3} dot={{ r: 5, fill: "#d08cff", strokeWidth: 2 }} activeDot={{ r: 7 }} animationDuration={800} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Pie chart */}
               <div className="chart-card pie-card">
                 <h3 className="chart-title" style={{ marginTop: "-8px" }}>Spending Breakdown</h3>
                 <label className="rent-toggle">
@@ -584,7 +619,7 @@ const Transactions = () => {
                       contentStyle={{ backgroundColor: "#1c1c1e", borderRadius: "8px", border: "1px solid #b387ff" }}
                       labelStyle={{ color: "#fff" }}
                       itemStyle={{ color: "#fff" }}
-                      formatter={(value) => `£${Number(value).toFixed(2)}`}
+                      formatter={(value) => `£${fmt(value)}`}
                     />
                     <Legend verticalAlign="bottom" height={36} />
                     <Pie key={includeHouseRent ? "include" : "exclude"} data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={110} label={false}>
@@ -609,11 +644,48 @@ const Transactions = () => {
                   <input placeholder="Search transaction by category, type, or description" value={searchTerm} onChange={handleSearch} />
                 </div>
                 <div style={{ display: "flex", gap: "10px", marginTop: "5px" }}>
-                  <button style={{ background: "#A78BFA", padding: "10px 18px", borderRadius: "8px", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}
-                    onClick={() => setIsAddTransactionOpen(true)}>
+                  <button
+                    style={{ background: "#A78BFA", padding: "10px 18px", borderRadius: "8px", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}
+                    onClick={() => setIsAddTransactionOpen(true)}
+                  >
                     <FaPlus /> Add Transaction
                   </button>
-                  <button className="filter-btn"><FaFilter /></button>
+
+                  {/* Filter button with dropdown */}
+                  <div style={{ position: "relative" }} ref={filterRef}>
+                    <button
+                      className="filter-btn"
+                      onClick={() => setIsFilterOpen(prev => !prev)}
+                    >
+                      <FaFilter />
+                    </button>
+
+                    {isFilterOpen && (
+                      <div style={{ position: "absolute", top: "110%", right: 0, zIndex: 1000 }}>
+                        <Filter
+                          onClose={() => setIsFilterOpen(false)}
+                          selectedTypes={selectedFilterTypes}
+                          setSelectedTypes={setSelectedFilterTypes}
+                          startDate={filterStartDate}
+                          setStartDate={setFilterStartDate}
+                          endDate={filterEndDate}
+                          setEndDate={setFilterEndDate}
+                          onApply={() => {
+                            setActiveFilters({ types: selectedFilterTypes, startDate: filterStartDate, endDate: filterEndDate });
+                            setIsFilterOpen(false);
+                          }}
+                          onReset={() => {
+                            setSelectedFilterTypes([]);
+                            setFilterStartDate("");
+                            setFilterEndDate("");
+                            setActiveFilters({ types: [], startDate: "", endDate: "" });
+                            setIsFilterOpen(false);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
                 </div>
               </div>
 
@@ -646,11 +718,17 @@ const Transactions = () => {
                             : t.category || "-"}
                         </td>
                         <td style={{ wordBreak: "break-word" }}>{t.description ?? "-"}</td>
-                        <td className={t.amount > 0 ? "amount-positive" : "amount-negative"}>
-                          {Math.abs(t.amount ?? 0).toFixed(2)}
+                        <td className={t.type === "studentfinance" || t.amount >= 0 ? "amount-positive" : "amount-negative"}>
+                          {fmt(Math.abs(t.amount ?? 0))}
                         </td>
                         <td>
-                          <button className="edit-btn" onClick={() => { setCurrentEditTransaction(t); setIsEditTransactionOpen(true); }}>
+                          <button
+                            className="edit-btn"
+                            onClick={() => {
+                              setCurrentEditTransaction(t);
+                              setIsEditTransactionOpen(true);
+                            }}
+                          >
                             <FaEdit />
                           </button>
                         </td>

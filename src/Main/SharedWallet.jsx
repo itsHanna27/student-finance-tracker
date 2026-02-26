@@ -83,6 +83,22 @@ export default function SharedWallet() {
     fetchWallets(); 
   };
 
+  // Helper to format remaining balance for manual split
+  const formatRemainingBalance = (currentBalance) => {
+    const raw = currentBalance || "£0.00";
+    const value = parseFloat(raw.replace('£', ''));
+    if (value < 0) {
+      return {
+        label: `Over by £${Math.abs(value).toFixed(2)}`,
+        color: '#EF4444'
+      };
+    }
+    return {
+      label: `£${value.toFixed(2)}`,
+      color: '#10B981'
+    };
+  };
+
   return (
     <>
       <style>{`
@@ -246,21 +262,22 @@ export default function SharedWallet() {
                 )}
 
                 {/* Manual Split - Show Budget and Remaining */}
-                {wallet.splitType === "manual" && (
-                  <>
-                    <p className="wallet-info">
-                      <span className="info-label">Budget:</span> {wallet.budgetValue || wallet.paid || "£0.00"}
-                    </p>
-                    <p className="wallet-info">
-                      <span className="info-label">Remaining:</span> 
-                      <span style={{ 
-                        color: parseFloat((wallet.currentBalance || "£0.00").replace('£', '')) < 0 ? '#EF4444' : '#10B981' 
-                      }}>
-                        {wallet.currentBalance || "£0.00"}
-                      </span>
-                    </p>
-                  </>
-                )}
+                {wallet.splitType === "manual" && (() => {
+                  const remaining = formatRemainingBalance(wallet.currentBalance);
+                  return (
+                    <>
+                      <p className="wallet-info">
+                        <span className="info-label">Budget:</span> {wallet.budgetValue || wallet.paid || "£0.00"}
+                      </p>
+                      <p className="wallet-info">
+                        <span className="info-label">Remaining:</span> 
+                        <span style={{ color: remaining.color }}>
+                          {remaining.label}
+                        </span>
+                      </p>
+                    </>
+                  );
+                })()}
 
                 {/* Equal Split - Show Total Amount and Per Person */}
                 {wallet.splitType === "equal" && (
