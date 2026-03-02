@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./ViewTransactions.css";
+import "../ModalCSS/ViewTransactions.css";
 import { FaEdit, FaTrash, FaTimes, FaCheck } from "react-icons/fa";
 
 const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransactionsChange, currentUser }) => {

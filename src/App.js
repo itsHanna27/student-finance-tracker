@@ -10,13 +10,13 @@ import FriendRequest from "./Main/friendrequest";
 import BudgetandSaving from "./Main/BudgetandSaving";
 import Community from "./Main/Community";
 import SharedWallet from "./Main/SharedWallet";
-import Notification from "./Modal/Notification";
+import Notification from "./Main/Notification";
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* ✅ lowercase /signup — this was the bug */}
+      
         <Route path="/" element={<Navigate to="/signup" />} />
 
         <Route path="/login" element={<Login />} />

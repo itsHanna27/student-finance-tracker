@@ -1,29 +1,36 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./navbar.css";
-import { FaWallet, FaBell, FaUserPlus, FaUserCheck } from "react-icons/fa";
+import { FaWallet, FaBell, FaUserPlus, FaUserCheck, FaThumbsUp, FaThumbsDown, FaComment } from "react-icons/fa";
 
 const getNotifRoute = (type) => {
   if (type === "wallet_transaction" || type === "wallet_added") return "/SharedWallet";
   if (type === "transaction") return "/transactions";
   if (type === "reminder" || type === "alert") return "/transactions";
+  if (type === "community_like" || type === "community_dislike" || type === "community_comment") return "/Community";
   return null;
 };
 
 const typeConfig = {
-  alert:              { icon: "⚠️",                 bg: "#2a1a3e", color: "#f87171" },
-  transaction:        { icon: "💸",                 bg: "#1a1535", color: "#a78bfa" },
-  reminder:           { icon: "🔔",                 bg: "#1e1542", color: "#c4b5fd" },
-  friend_request:     { icon: "react:FaUserPlus",   bg: "#1e1542", color: "#9b7fd4" },
-  friend_accepted:    { icon: "react:FaUserCheck",  bg: "#1e1542", color: "#9b7fd4" },
-  wallet_transaction: { icon: "react:FaWallet",     bg: "#1a1535", color: "#d8b4fe" },
-  wallet_added:       { icon: "react:FaWallet",     bg: "#1a1535", color: "#d8b4fe" },
+  alert:              { icon: "⚠️",                  bg: "#2a1a3e", color: "#f87171" },
+  transaction:        { icon: "💸",                  bg: "#1a1535", color: "#a78bfa" },
+  reminder:           { icon: "🔔",                  bg: "#1e1542", color: "#c4b5fd" },
+  friend_request:     { icon: "react:FaUserPlus",    bg: "#1e1542", color: "#9b7fd4" },
+  friend_accepted:    { icon: "react:FaUserCheck",   bg: "#1e1542", color: "#9b7fd4" },
+  wallet_transaction: { icon: "react:FaWallet",      bg: "#1a1535", color: "#d8b4fe" },
+  wallet_added:       { icon: "react:FaWallet",      bg: "#1a1535", color: "#d8b4fe" },
+  community_like:     { icon: "react:FaThumbsUp",    bg: "#1a1535", color: "#a78bfa" },
+  community_dislike:  { icon: "react:FaThumbsDown",  bg: "#2a1a3e", color: "#f87171" },
+  community_comment:  { icon: "react:FaComment",     bg: "#1e1542", color: "#c4b5fd" },
 };
 
 const renderIcon = (icon, color) => {
-  if (icon === "react:FaUserPlus")  return <FaUserPlus size={14} color={color} />;
-  if (icon === "react:FaUserCheck") return <FaUserCheck size={14} color={color} />;
-  if (icon === "react:FaWallet")    return <FaWallet size={14} color={color} />;
+  if (icon === "react:FaUserPlus")   return <FaUserPlus size={14} color={color} />;
+  if (icon === "react:FaUserCheck")  return <FaUserCheck size={14} color={color} />;
+  if (icon === "react:FaWallet")     return <FaWallet size={14} color={color} />;
+  if (icon === "react:FaThumbsUp")   return <FaThumbsUp size={14} color={color} />;
+  if (icon === "react:FaThumbsDown") return <FaThumbsDown size={14} color={color} />;
+  if (icon === "react:FaComment")    return <FaComment size={14} color={color} />;
   return icon;
 };
 
@@ -48,7 +55,7 @@ const formatDays = (days) => {
   return `in ${days} days`;
 };
 
-//localStorage helpers
+// localStorage helpers
 const getDismissed = () => {
   try { return new Set(JSON.parse(localStorage.getItem("unibudget_dismissed_notifs") || "[]")); }
   catch { return new Set(); }
@@ -92,13 +99,13 @@ const Navbar = () => {
 
       if (currentUser.id) {
 
-        //  DB notifications (friend requests, wallet) 
+        // DB notifications (friend requests, wallet, community)
         try {
           const notifRes = await fetch(`http://localhost:5000/notifications/${currentUser.id}`);
           const dbNotifs = await notifRes.json();
           if (Array.isArray(dbNotifs)) {
             dbNotifs.forEach((n) => {
-              if (dismissed.has(n._id)) return; 
+              if (dismissed.has(n._id)) return;
               built.push({
                 id: n._id,
                 dbId: n._id,
@@ -211,7 +218,7 @@ const Navbar = () => {
         } catch (e) { console.error("Failed to fetch transactions:", e); }
       }
 
-      // ── 3. Budget warning ──────────────────────────────────────────────
+      // Budget warning
       const budgetAlertRaw = localStorage.getItem("unibudget_budget_alert");
       if (budgetAlertRaw && !dismissed.has("budget-alert")) {
         try {
@@ -304,11 +311,11 @@ const Navbar = () => {
 
       <div className="navbar-right">
         <ul className="nav-list">
-          <li><NavLink to="/dashboard" className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Dashboard</NavLink></li>
+          <li><NavLink to="/dashboard"    className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Dashboard</NavLink></li>
           <li><NavLink to="/transactions" className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Transactions</NavLink></li>
           <li><NavLink to="/SharedWallet" className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Shared Wallets</NavLink></li>
-          <li><NavLink to="/community" className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Community</NavLink></li>
-          <li><NavLink to="/account" className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Account</NavLink></li>
+          <li><NavLink to="/community"    className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Community</NavLink></li>
+          <li><NavLink to="/account"      className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Account</NavLink></li>
         </ul>
 
         <div className="bell-wrapper" ref={bellRef}>

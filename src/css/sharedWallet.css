@@ -68,8 +68,8 @@
 
 .wallet-card:hover {
   transform: translateY(-5px);
-  border-color: rgba(139, 92, 246, 0.6);
-  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+  border-color: #8b5cf699;
+  box-shadow: 0 10px 30px #7c3aed4d;
 }
 
 .wallet-card h3 {
@@ -108,7 +108,7 @@
   font-size: 0.7rem;
   font-weight: 600;
   color: white;
-  border: 2px solid rgba(15, 23, 42, 0.8);
+  border: 2px solid #0f172a92;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -151,7 +151,7 @@
 }
 
 .create-wallet {
-  border: 2px dashed rgba(124, 58, 237, 0.5);
+  border: 2px dashed #7c3aed80;
   background: transparent;
   display: flex;
   flex-direction: column;

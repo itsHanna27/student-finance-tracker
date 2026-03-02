@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaTrophy, FaStar, FaTimes } from 'react-icons/fa';
-import './congrats.css';
+import '../ModalCSS/congrats.css';
 
 const Congrats = ({ goalAmount, period, onClose, onCreateNew }) => {
   const [showConfetti, setShowConfetti] = useState(true);

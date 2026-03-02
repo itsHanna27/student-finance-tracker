@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import "./bestie.css";
+import "../ModalCSS/bestie.css";
 
 const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals = {}, userId }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +24,7 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
     }
   }, []);
 
-  // 📊 Helper functions to calculate real data
+  //  Helper functions to calculate real data
   const getSpendingToday = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

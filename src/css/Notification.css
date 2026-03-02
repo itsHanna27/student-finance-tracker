@@ -276,3 +276,57 @@
 .notif-empty p {
   font-size: 15px;
 }
+
+.notif-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notif-delete-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f871711a;
+  border: 1px solid #f871714d;
+  border-radius: 8px;
+  color: #f87171;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+}
+.notif-delete-all-btn:hover {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: #f87171;
+}
+
+.notif-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+}
+.notif-delete-yes {
+  background: #f87171;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+.notif-delete-no {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}

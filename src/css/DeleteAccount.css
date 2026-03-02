@@ -90,7 +90,7 @@
   padding: 10px 14px;
 }
 
-.delete-btn {
+.delete {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -107,13 +107,13 @@
   letter-spacing: 0.3px;
 }
 
-.delete-btn.active {
+.delete.active {
   background: #7f1d1d;
   color: white;
   cursor: pointer;
 }
 
-.delete-btn.active:hover {
+.delete.active:hover {
   background: #991b1b;
 }
 

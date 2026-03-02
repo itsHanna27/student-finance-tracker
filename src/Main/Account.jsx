@@ -196,12 +196,12 @@ const ProfileSection = ({ user, avatar, setFile, setUser }) => {
       {/* Edit / Save / Cancel buttons */}
       <div className="profile-buttons">
         {!editMode ? (
-          <button onClick={() => setEditMode(true)} className="edit-btn">
+          <button onClick={() => setEditMode(true)} className="edit">
             Edit Profile
           </button>
         ) : (
           <>
-            <button onClick={handleSave} className="save-btn">
+            <button onClick={handleSave} className="savebtn">
               Save Changes
             </button>
             <button onClick={handleCancel} className="cancel-btn">

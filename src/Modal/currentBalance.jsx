@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./currentBalance.css";
+import "../ModalCSS/currentBalance.css";
 
 const CurrentBalance = ({ balance, setBalance, onClose, onAddTransaction }) => {
   const [amountDigits, setAmountDigits] = useState(""); // store digits only

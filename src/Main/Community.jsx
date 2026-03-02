@@ -1,152 +1,195 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../css/Community.css";
 import Navbar from "../Navbar/Navbar";
 import Bestie from "../Modal/bestie";
 import useFinanceData from "../hooks/FinanceData";
 
+const API = "http://localhost:5000";
 
-const posts = [
-  {
-    id: 1,
-    name: "Lily Smith",
-    avatar: "LS",
-    title: "Cashback Apps Are a Game Changer",
-    text: "I started using cashback apps whenever I shop online — it adds up fast!",
-    likes: 37,
-    dislikes: 2,
-  },
-  {
-    id: 2,
-    name: "John Doe",
-    avatar: "JD",
-    title: "Automate Your Savings Every Week",
-    text: "Every Sunday, I've got a standing order that moves £10 straight into my savings. Honestly, I barely notice it, but by the end of the semester it turns into a decent chunk of money. Such an easy habit that makes saving feel effortless!",
-    likes: 65,
-    dislikes: 1,
-  },
-  {
-    id: 3,
-    name: "Jane Doe",
-    avatar: "JD",
-    title: "Split Bills With a Screenshot System",
-    text: "We split our utilities evenly each month and whoever pays uploads a screenshot. Simple and transparent. p.s I love this website!!!!",
-    likes: 20,
-    dislikes: 1,
-  },
-  {
-    id: 4,
-    name: "Mike Rod",
-    avatar: "MR",
-    title: "Cook With Flatmates to Cut Costs",
-    text: "Cooking with flatmates once a week helped me save on groceries and we all eat better.",
-    likes: 349,
-    dislikes: 28,
-  },
-  {
-    id: 5,
-    name: "Emma Jane",
-    avatar: "EJ",
-    title: "Skip the Coffee Shop",
-    text: "I make my coffee at home now. £2 saved per day = £60 a month 😄",
-    likes: 205,
-    dislikes: 28,
-  },
-  {
-    id: 6,
-    name: "Molly Mae",
-    avatar: "MM",
-    title: "Use Your Uni Printer — It's Free",
-    text: "If you need to print stuff for classes, always use your university library printer instead of the one in town. Most unis give you free print credits each semester, and even when they don't, it's still way cheaper than local shops.",
-    likes: 10,
-    dislikes: 1,
-  },
-  {
-    id: 7,
-    name: "Daniel Rodd",
-    avatar: "DR",
-    title: "Too Good To Go = Cheap Amazing Food",
-    text: "Download Too Good To Go — restaurants and cafes sell leftover food at a huge discount near closing time. I've had amazing meals for under £3!",
-    likes: 88,
-    dislikes: 3,
-  },
-  {
-    id: 8,
-    name: "Sophie Turner",
-    avatar: "ST",
-    title: "Free Software With Your Student Email",
-    text: "Check if your uni has a free Microsoft Office 365 subscription for students. Also Adobe Creative Cloud is often discounted by 60%+ with a student email.",
-    likes: 142,
-    dislikes: 5,
-  },
-  {
-    id: 9,
-    name: "Amir Khan",
-    avatar: "AK",
-    title: "Set Up a Guilt-Free Treat Account",
-    text: "Set up a separate 'treat' account with £20/month. You can spend it guilt-free on takeaways or nights out knowing your main budget is untouched.",
-    likes: 73,
-    dislikes: 4,
-  },
-];
+const isUrl = (str) => typeof str === "string" && str.startsWith("http");
 
-function Avatar2({ initials }) {
-  return <div className="avatar2">{initials}</div>;
+function Avatar2({ name, avatar }) {
+  const initials = name?.slice(0, 2).toUpperCase();
+  return (
+    <div className="avatar2">
+      {isUrl(avatar) ? (
+        <img src={avatar} alt={initials} onError={(e) => { e.target.style.display = "none"; }} />
+      ) : (
+        initials
+      )}
+    </div>
+  );
 }
 
-function Card({ post }) {
-  const [likes, setLikes] = useState(post.likes);
-  const [dislikes, setDislikes] = useState(post.dislikes);
-  const [voted, setVoted] = useState(null);
+function CommentSection({ postId, comments: initialComments, userId }) {
+  const [comments, setComments] = useState(initialComments || []);
+  const [commentText, setCommentText] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLike = () => {
-    if (voted === "like") {
-      setLikes((l) => l - 1);
-      setVoted(null);
-    } else {
-      setLikes((l) => l + 1);
-      if (voted === "dislike") setDislikes((d) => d - 1);
-      setVoted("like");
+  const handleSubmit = async () => {
+    if (!commentText.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/posts/${postId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, text: commentText.trim() }),
+      });
+      const newComment = await res.json();
+      setComments((prev) => [...prev, newComment]);
+      setCommentText("");
+    } catch (err) {
+      console.error("Comment error:", err);
+    }
+    setLoading(false);
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await fetch(`${API}/api/posts/${postId}/comments/${commentId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
+    } catch (err) {
+      console.error("Delete comment error:", err);
     }
   };
 
-  const handleDislike = () => {
-    if (voted === "dislike") {
-      setDislikes((d) => d - 1);
-      setVoted(null);
-    } else {
-      setDislikes((d) => d + 1);
-      if (voted === "like") setLikes((l) => l - 1);
-      setVoted("dislike");
+  return (
+    <div className="comment-section">
+      <div className="comment-list">
+        {comments.map((c, i) => (
+          <div key={c._id || i} className="comment-item">
+            <Avatar2 name={c.name} avatar={c.avatar} />
+            <div className="comment-body">
+              <span className="comment-name">{c.name}</span>
+              <p className="comment-text">{c.text}</p>
+            </div>
+            {c.userId?.toString() === userId?.toString() && (
+              <button
+                className="delete-comment-btn"
+                onClick={() => handleDeleteComment(c._id)}
+                title="Delete comment"
+              >
+                <i className="fa-solid fa-trash"></i>
+              </button>
+            )}
+          </div>
+        ))}
+        {comments.length === 0 && (
+          <p className="no-comments">No comments yet. Be the first!</p>
+        )}
+      </div>
+      <div className="comment-input-row">
+        <input
+          className="comment-input"
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+          placeholder="Write a comment..."
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        />
+        <button className="send-btn" onClick={handleSubmit} disabled={loading}>
+          {loading ? "..." : "Send"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Card({ post, userId, onDelete }) {
+  const [likes, setLikes] = useState(post.likes?.length ?? 0);
+  const [dislikes, setDislikes] = useState(post.dislikes?.length ?? 0);
+  const [voted, setVoted] = useState(
+    post.likes?.includes(userId) ? "like" : post.dislikes?.includes(userId) ? "dislike" : null
+  );
+  const [showComments, setShowComments] = useState(false);
+
+  const handleLike = async () => {
+    try {
+      const res = await fetch(`${API}/api/posts/${post._id}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      setLikes(data.likes);
+      setDislikes(data.dislikes);
+      setVoted((prev) => (prev === "like" ? null : "like"));
+    } catch (err) {
+      console.error("Like error:", err);
+    }
+  };
+
+  const handleDislike = async () => {
+    try {
+      const res = await fetch(`${API}/api/posts/${post._id}/dislike`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      setLikes(data.likes);
+      setDislikes(data.dislikes);
+      setVoted((prev) => (prev === "dislike" ? null : "dislike"));
+    } catch (err) {
+      console.error("Dislike error:", err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Delete this post?")) return;
+    try {
+      await fetch(`${API}/api/posts/${post._id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      onDelete(post._id);
+    } catch (err) {
+      console.error("Delete error:", err);
     }
   };
 
   return (
     <div className="card">
+      {/* Header — no delete button here */}
       <div className="card-header">
-        <Avatar2 initials={post.avatar} />
+        <Avatar2 name={post.name} avatar={post.avatar} />
         <span className="card-name">{post.name}</span>
       </div>
+
       <p className="card-title">{post.title}</p>
       <p className="card-text">"{post.text}"</p>
+
       <div className="card-actions">
         <div className="vote-group">
-          <button
-            className={`vote-btn${voted === "like" ? " liked" : ""}`}
-            onClick={handleLike}
-          >
+          <button className={`vote-btn${voted === "like" ? " liked" : ""}`} onClick={handleLike}>
             <i className="fa-solid fa-thumbs-up"></i> {likes}
           </button>
-          <button
-            className={`vote-btn${voted === "dislike" ? " disliked" : ""}`}
-            onClick={handleDislike}
-          >
+          <button className={`vote-btn${voted === "dislike" ? " disliked" : ""}`} onClick={handleDislike}>
             <i className="fa-solid fa-thumbs-down"></i> {dislikes}
           </button>
         </div>
-        <button className="vote-btn comment-btn">
-          <i className="fa-regular fa-comment"></i> Comment
+        <button
+          className={`vote-btn comment-btn${showComments ? " active" : ""}`}
+          onClick={() => setShowComments((v) => !v)}
+        >
+          <i className="fa-regular fa-comment"></i> {post.comments?.length ?? 0}
         </button>
       </div>
+
+      {showComments && (
+        <CommentSection postId={post._id} comments={post.comments} userId={userId} />
+      )}
+
+      {/* Delete button at the very bottom of the card */}
+      {post.userId?.toString() === userId?.toString() && (
+        <button className="deletebtn" onClick={handleDelete} title="Delete post">
+          <i className="fa-solid fa-trash"></i>
+        </button>
+      )}
     </div>
   );
 }
@@ -154,40 +197,77 @@ function Card({ post }) {
 export default function CommunityPage() {
   const [titleInput, setTitleInput] = useState("");
   const [input, setInput] = useState("");
-  const [allPosts, setAllPosts] = useState(posts);
+  const [allPosts, setAllPosts] = useState([]);
   const [search, setSearch] = useState("");
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [posting, setPosting] = useState(false);
+  const [activeTab, setActiveTab] = useState("community");
+  const [friendIds, setFriendIds] = useState([]);
 
-  const {
-    transactions,
-    savingGoals,
-    budgetGoals,
-    balance,
-    userId,
-  } = useFinanceData();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userId = user?.id || user?._id;
 
-  const filtered = allPosts.filter(
+  const { transactions, savingGoals, budgetGoals, balance } = useFinanceData();
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch(`${API}/api/posts`);
+        const data = await res.json();
+        setAllPosts(data);
+      } catch (err) {
+        console.error("Fetch posts error:", err);
+      }
+      setLoadingPosts(false);
+    };
+    const fetchFriends = async () => {
+      if (!userId) return;
+      try {
+        const res = await fetch(`${API}/user/${userId}`);
+        const data = await res.json();
+        setFriendIds(data.friends?.map((f) => f.toString()) || []);
+      } catch (err) {
+        console.error("Fetch friends error:", err);
+      }
+    };
+    fetchPosts();
+    fetchFriends();
+  }, [userId]);
+
+  const tabFiltered = allPosts.filter((p) => {
+    if (activeTab === "mine") return p.userId?.toString() === userId?.toString();
+    if (activeTab === "friends") return friendIds.includes(p.userId?.toString());
+    return true;
+  });
+
+  const filtered = tabFiltered.filter(
     (p) =>
-      p.text.toLowerCase().includes(search.toLowerCase()) ||
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.title.toLowerCase().includes(search.toLowerCase())
+      p.text?.toLowerCase().includes(search.toLowerCase()) ||
+      p.name?.toLowerCase().includes(search.toLowerCase()) ||
+      p.title?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handlePost = () => {
-    if (!input.trim() || !titleInput.trim()) return;
-    setAllPosts((prev) => [
-      {
-        id: Date.now(),
-        name: "You",
-        avatar: "ME",
-        title: titleInput.trim(),
-        text: input.trim(),
-        likes: 0,
-        dislikes: 0,
-      },
-      ...prev,
-    ]);
-    setTitleInput("");
-    setInput("");
+  const handlePost = async () => {
+    if (!input.trim() || !titleInput.trim() || !userId) return;
+    setPosting(true);
+    try {
+      const res = await fetch(`${API}/api/posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, title: titleInput.trim(), text: input.trim() }),
+      });
+      const newPost = await res.json();
+      setAllPosts((prev) => [newPost, ...prev]);
+      setTitleInput("");
+      setInput("");
+    } catch (err) {
+      console.error("Post error:", err);
+    }
+    setPosting(false);
+  };
+
+  const handleDelete = (postId) => {
+    setAllPosts((prev) => prev.filter((p) => p._id !== postId));
   };
 
   return (
@@ -226,9 +306,7 @@ export default function CommunityPage() {
         <div className="community-header">
           <h1 className="community-title">Community Page</h1>
           <p className="community-subtitle">
-            Explore how students like you budget, save, and stay on top of uni life and share
-            your own advice, stories, and money-saving hacks.
-          </p>
+            Explore how students like you budget, save, and stay on top of uni life and share your own advice, stories, and money-saving hacks.</p>
         </div>
 
         <div className="community-container">
@@ -237,7 +315,7 @@ export default function CommunityPage() {
               className="search-input"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Ask questions or share your best budgeting hacks!"
+              placeholder="Search posts by title, name, or content..."
             />
           </div>
 
@@ -257,20 +335,33 @@ export default function CommunityPage() {
               rows={3}
             />
             <div className="compose-footer">
-              <button className="post-btn" onClick={handlePost}>
-                Post
+              <button className="post-btn" onClick={handlePost} disabled={posting}>
+                {posting ? "Posting..." : "Post"}
               </button>
             </div>
           </div>
 
-          <div className="posts-grid">
-            {filtered.map((post) => (
-              <Card key={post.id} post={post} />
-            ))}
-            {filtered.length === 0 && (
-              <div className="no-results">No posts found matching "{search}"</div>
-            )}
-          </div>
+          {loadingPosts ? (
+            <p className="loading-posts">Loading posts...</p>
+          ) : (
+            <>
+              <div className="tabs">
+                <button className={`tab-btn${activeTab === "mine" ? " active-tab" : ""}`} onClick={() => setActiveTab("mine")}>My Posts</button>
+                <button className={`tab-btn${activeTab === "friends" ? " active-tab" : ""}`} onClick={() => setActiveTab("friends")}>Friends Posts</button>
+                <button className={`tab-btn${activeTab === "community" ? " active-tab" : ""}`} onClick={() => setActiveTab("community")}>Community Posts</button>
+              </div>
+              <div className="posts-grid">
+                {filtered.map((post) => (
+                  <Card key={post._id} post={post} userId={userId} onDelete={handleDelete} />
+                ))}
+                {filtered.length === 0 && (
+                  <div className="no-results">
+                    No posts found{search ? ` matching "${search}"` : " in this tab"}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

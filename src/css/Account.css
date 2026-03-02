@@ -133,7 +133,7 @@
   margin-top: 20px;
 }
 
-.edit-btn {
+.edit {
   background: #1D2141;
   border: 1px solid #a78bfa;
   color: #a78bfa;
@@ -145,11 +145,11 @@
   transition: all 0.3s ease;
 }
 
-.edit-btn:hover {
+.edit:hover {
   background: #252a52;
 }
 
-.save-btn {
+.savebtn {
   background: #a78bfa;
   border: 1px solid white;
   color: white;
@@ -159,9 +159,10 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  width: 50%;
 }
 
-.save-btn:hover {
+.savebtn:hover {
   background: #9333ea;
 }
 

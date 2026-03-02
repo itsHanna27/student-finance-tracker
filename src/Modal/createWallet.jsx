@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./createwallet.css";
+import "../ModalCSS/createwallet.css";
 
 
 export default function CreateWalletModal({ isOpen, onClose, onWalletCreated }) {

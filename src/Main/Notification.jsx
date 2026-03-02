@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { FaUserPlus, FaUserCheck, FaWallet } from "react-icons/fa";
-import "./Notification.css";
+import { FaUserPlus, FaUserCheck, FaWallet, FaThumbsUp, FaThumbsDown, FaComment, FaTrash } from "react-icons/fa";
+import "../css/Notification.css";
 import Navbar from "../Navbar/Navbar";
 
-//notifications data
 const typeConfig = {
-  alert:             { icon: "⚠️",                 label: "Alert",       bg: "#2a1a3e", color: "#f87171" },
-  transaction:       { icon: "💸",                 label: "Transaction",  bg: "#1a1535", color: "#a78bfa" },
-  reminder:          { icon: "🔔",                 label: "Reminder",     bg: "#1e1542", color: "#c4b5fd" },
-  friend_request:    { icon: "react:FaUserPlus",   label: "Friend",       bg: "#1e1542", color: "#9b7fd4" },
-  friend_accepted:   { icon: "react:FaUserCheck",  label: "Friend",       bg: "#1e1542", color: "#9b7fd4" },
-  wallet_transaction:{ icon: "react:FaWallet",     label: "Wallet",       bg: "#1a1535", color: "#d8b4fe" },
-  wallet_added:      { icon: "react:FaWallet",     label: "Wallet",       bg: "#1a1535", color: "#d8b4fe" },
+  alert:              { icon: "⚠️",                  label: "Alert",       bg: "#2a1a3e", color: "#f87171" },
+  transaction:        { icon: "💸",                  label: "Transaction",  bg: "#1a1535", color: "#a78bfa" },
+  reminder:           { icon: "🔔",                  label: "Reminder",     bg: "#1e1542", color: "#c4b5fd" },
+  friend_request:     { icon: "react:FaUserPlus",    label: "Friend",       bg: "#1e1542", color: "#9b7fd4" },
+  friend_accepted:    { icon: "react:FaUserCheck",   label: "Friend",       bg: "#1e1542", color: "#9b7fd4" },
+  wallet_transaction: { icon: "react:FaWallet",      label: "Wallet",       bg: "#1a1535", color: "#d8b4fe" },
+  wallet_added:       { icon: "react:FaWallet",      label: "Wallet",       bg: "#1a1535", color: "#d8b4fe" },
+  community_like:     { icon: "react:FaThumbsUp",    label: "Community",    bg: "#1a1535", color: "#a78bfa" },
+  community_dislike:  { icon: "react:FaThumbsDown",  label: "Community",    bg: "#2a1a3e", color: "#f87171" },
+  community_comment:  { icon: "react:FaComment",     label: "Community",    bg: "#1e1542", color: "#c4b5fd" },
 };
-//icons
+
 const renderIcon = (icon, color) => {
-  if (icon === "react:FaUserPlus")  return <FaUserPlus size={16} color={color} />;
-  if (icon === "react:FaUserCheck") return <FaUserCheck size={16} color={color} />;
-  if (icon === "react:FaWallet")    return <FaWallet size={16} color={color} />;
+  if (icon === "react:FaUserPlus")   return <FaUserPlus size={16} color={color} />;
+  if (icon === "react:FaUserCheck")  return <FaUserCheck size={16} color={color} />;
+  if (icon === "react:FaWallet")     return <FaWallet size={16} color={color} />;
+  if (icon === "react:FaThumbsUp")   return <FaThumbsUp size={16} color={color} />;
+  if (icon === "react:FaThumbsDown") return <FaThumbsDown size={16} color={color} />;
+  if (icon === "react:FaComment")    return <FaComment size={16} color={color} />;
   return icon;
 };
 
-const FILTERS = ["All", "Unread", "Transactions", "Reminders", "Friends", "Wallet"];
+const FILTERS = ["All", "Unread", "Transactions", "Reminders", "Friends", "Wallet", "Community"];
 
-// localStorage helpers 
 const getDismissed = () => {
   try { return new Set(JSON.parse(localStorage.getItem("unibudget_dismissed_notifs") || "[]")); }
   catch { return new Set(); }
@@ -39,6 +43,7 @@ const Notification = () => {
   const [notifications, setNotifications] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
   const [loading, setLoading] = useState(true);
+  
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -73,7 +78,7 @@ const Notification = () => {
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(today.getDate() - 7);
 
-      // DB notifications 
+      // DB notifications (friend requests, wallet, community)
       try {
         const notifRes = await fetch(`http://localhost:5000/notifications/${currentUser.id}`);
         const dbNotifs = await notifRes.json();
@@ -90,7 +95,7 @@ const Notification = () => {
         });
       } catch {}
 
-      // recent transactions 
+      // Recent transactions
       try {
         const txRes = await fetch(`http://localhost:5000/transactions?userId=${currentUser.id}`);
         const transactions = await txRes.json();
@@ -116,7 +121,7 @@ const Notification = () => {
             });
           });
 
-        // subscriptions if due soon
+        // Subscriptions due soon
         transactions
           .filter((t) => t.type?.toLowerCase() === "subscription" && t.date && t.frequency)
           .forEach((t) => {
@@ -136,7 +141,7 @@ const Notification = () => {
             }
           });
 
-        // house/bills if due soon
+        // House/bills due soon
         transactions
           .filter((t) => t.type?.toLowerCase() === "house" && t.date && t.frequency)
           .forEach((t) => {
@@ -156,7 +161,7 @@ const Notification = () => {
             }
           });
 
-        // student finance upcoming
+        // Student finance upcoming
         try {
           const allRes = await fetch(`http://localhost:5000/transactions/all?userId=${currentUser.id}`);
           const allTransactions = await allRes.json();
@@ -185,7 +190,7 @@ const Notification = () => {
 
       } catch {}
 
-      // budget warning
+      // Budget warning
       if (!dismissed.has("budget-alert")) {
         const budgetAlertRaw = localStorage.getItem("unibudget_budget_alert");
         if (budgetAlertRaw) {
@@ -204,7 +209,7 @@ const Notification = () => {
         }
       }
 
-      // reminders
+      // Recurring reminders
       const recurring = JSON.parse(localStorage.getItem("unibudget_recurring") || "[]");
       recurring.forEach((t) => {
         const id = `due-${t.category}-${t.type}`;
@@ -231,8 +236,6 @@ const Notification = () => {
     setNotifications(built);
     setLoading(false);
   };
-
-  //actions
 
   const markAllRead = async () => {
     const read = getRead();
@@ -275,7 +278,17 @@ const Notification = () => {
     dismiss(n);
   };
 
-  // filter groups
+  const deleteAll = async () => {
+    if (!window.confirm("Delete all notifications? This cannot be undone.")) return;
+    const dismissed = getDismissed();
+    notifications.forEach((n) => dismissed.add(n.id));
+    saveDismissed(dismissed);
+    localStorage.removeItem("unibudget_budget_alert");
+    try {
+      await fetch(`http://localhost:5000/notifications/delete-all/${currentUser.id}`, { method: "DELETE" });
+    } catch {}
+    setNotifications([]);
+  };
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
@@ -286,6 +299,7 @@ const Notification = () => {
     if (activeFilter === "Reminders") return n.type === "reminder" || n.type === "alert";
     if (activeFilter === "Friends") return n.type === "friend_request" || n.type === "friend_accepted";
     if (activeFilter === "Wallet") return n.type === "wallet_transaction" || n.type === "wallet_added";
+    if (activeFilter === "Community") return n.type === "community_like" || n.type === "community_dislike" || n.type === "community_comment";
     return true;
   });
 
@@ -295,8 +309,6 @@ const Notification = () => {
     acc[key].push(n);
     return acc;
   }, {});
-
-  //main page
 
   return (
     <>
@@ -327,11 +339,19 @@ const Notification = () => {
                   : "You're all caught up!"}
               </p>
             </div>
-            {unreadCount > 0 && (
-              <button className="notif-mark-all-btn" onClick={markAllRead}>
-                ✓ Mark all as read
-              </button>
-            )}
+
+            <div className="notif-page-actions">
+              {unreadCount > 0 && (
+                <button className="notif-mark-all-btn" onClick={markAllRead}>
+                  ✓ Mark all as read
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button className="notif-delete-all-btn" onClick={deleteAll}>
+                  <FaTrash size={12} /> Delete all
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="notif-filters">

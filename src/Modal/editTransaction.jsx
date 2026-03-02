@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import "./AddTransaction.css";
-import "./editTransaction.css";
+import "../ModalCSS/AddTransaction.css";
+import "../ModalCSS/editTransaction.css";
 
-// ── helpers ───────────────────────────────────────────────────────────────────
+// helpers 
 
 const detectActiveTerm = (payments) => {
   const today = new Date();
@@ -23,7 +23,7 @@ const fmt = (digits) => {
 const toDigits = (amount) =>
   Math.round(Math.abs(amount || 0) * 100).toString();
 
-// ── component ─────────────────────────────────────────────────────────────────
+// component
 
 const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
   const {
@@ -38,9 +38,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
     studentFinancePayments = [],
   } = transaction;
 
-  // ── KEY FIX: normalise type casing ──
-  // DB stores "studentfinance" (lowercase), but our UI uses "studentFinance"
-  // Without this the modal defaults to "expense" because no case matches
+ 
   const normaliseType = (t) => {
     if (!t) return "expense";
     if (t.toLowerCase() === "studentfinance") return "studentFinance";
@@ -54,7 +52,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
   const [description, setDescription] = useState(initialDescription || "");
   const [amountDigits, setAmountDigits] = useState(toDigits(initialAmount));
 
-  // ── student finance state ──
+  //student finance state
   const [sfTerms, setSfTerms] = useState(
     studentFinancePayments.length === 3
       ? studentFinancePayments.map((p) => ({
@@ -77,7 +75,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
     );
   });
 
-  // ── misc ──
+  // options
   const today = new Date().toISOString().split("T")[0];
   const allowFutureDate = ["subscription", "house", "studentFinance"].includes(type);
 
@@ -88,7 +86,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
     studentFinance: ["Student Finance"],
   }[type] || [];
 
-  // ── handlers ──
+  //handlers
   const handleAmountChange = (e) => {
     let v = e.target.value.replace(/\D/g, "");
     if (v.length > 10) v = v.slice(0, 10);
@@ -115,7 +113,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
   );
 
   const handleSave = () => {
-    // Strip synthetic/display-only fields before sending to backend
+    // this ovverrides the fake display to the user's input
     const { _sfTermIndex: _a, description: _b, category: _c, date: _d, amount: _e, ...baseTransaction } = transaction;
 
     let payload;
@@ -157,7 +155,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
     onDelete(transactionId);
   };
 
-  // ── render ────────────────────────────────────────────────────────────────
+  //modal
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -241,11 +239,11 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
           </>
         )}
 
-        {/* ── Student Finance ── */}
+        {/*  Student Finance  */}
         {type === "studentFinance" && (
           <div style={{ marginTop: "4px" }}>
 
-            {/* Opened from a specific row → just label, no tabs */}
+           
             {_sfTermIndex !== undefined ? (
               <p style={{
                 fontWeight: 700,

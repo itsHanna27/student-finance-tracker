@@ -49,4 +49,13 @@ router.delete("/notifications/:id", async (req, res) => {
   }
 });
 
+router.delete("/notifications/delete-all/:userId", async (req, res) => {
+  try {
+    await Notification.deleteMany({ userId: req.params.userId });
+    res.json({ message: "All notifications deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;

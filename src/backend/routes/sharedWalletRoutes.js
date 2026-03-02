@@ -18,7 +18,7 @@ router.post('/create-wallet', async (req, res) => {
     const newWallet = new SharedWallet({ title, members, splitType, last, balanceLeft, paid, createdBy });
     await newWallet.save();
 
-    //  Notify all members except the creator that they were added 
+    // Notify all members except the creator that they were added
     const creator = members.find(m => m.id === createdBy);
     const creatorName = creator?.name || "Someone";
 
@@ -148,7 +148,7 @@ router.post('/wallets/:walletId/transactions', async (req, res) => {
     // Update wallet's last activity
     await SharedWallet.findByIdAndUpdate(walletId, { last: new Date().toISOString() });
 
-    //  Notify all wallet members except the person who added the transaction
+    // Notify all wallet members except the person who added the transaction
     const wallet = await SharedWallet.findById(walletId);
     if (wallet) {
       const otherMembers = wallet.members.filter(m => m.id !== paidBy);
@@ -221,6 +221,44 @@ router.put('/wallets/:walletId/transactions/:transactionId', async (req, res) =>
     res.json(updatedTransaction);
   } catch (err) {
     res.status(500).json({ message: 'Failed to update transaction', error: err.message });
+  }
+});
+
+// Kick a member from a wallet (owner only)
+router.post('/wallet/:id/kick', async (req, res) => {
+  try {
+    const { userId, memberId } = req.body;
+
+    const wallet = await SharedWallet.findById(req.params.id);
+    if (!wallet) return res.status(404).json({ message: 'Wallet not found' });
+    if (wallet.createdBy.toString() !== userId.toString())
+      return res.status(403).json({ message: 'Only the owner can remove members' });
+    if (userId === memberId)
+      return res.status(400).json({ message: 'You cannot kick yourself' });
+
+    const kickedMember = wallet.members.find(m => m.id.toString() === memberId.toString());
+    wallet.members = wallet.members.filter(m => m.id.toString() !== memberId.toString());
+    await wallet.save();
+
+    // Notify the kicked member
+    if (kickedMember) {
+      const owner = wallet.members.find(m => m.id.toString() === userId.toString());
+      await Notification.create({
+        userId: memberId,
+        type: "wallet_added",
+        title: "Removed from Shared Wallet",
+        message: `You have been removed from the shared wallet "${wallet.title}".`,
+        fromUserId: userId,
+        fromUserName: owner?.name || "The owner",
+        walletId: wallet._id.toString(),
+        walletTitle: wallet.title,
+      });
+    }
+
+    res.json({ message: 'Member removed successfully' });
+  } catch (err) {
+    console.error('Kick error:', err);
+    res.status(500).json({ message: 'Failed to remove member', error: err.message });
   }
 });
 

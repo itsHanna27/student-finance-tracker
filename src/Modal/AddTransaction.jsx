@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./AddTransaction.css";
+import "../ModalCSS/AddTransaction.css";
 
 const SF_KEY = "unibudget_student_finance";
 

@@ -58,12 +58,12 @@ const Dashboard = () => {
     return data;
   }, [transactions]);
 
-  // Weekly total — recomputes when weeklyData changes
+  // Weekly total - recomputes when weeklyData changes
   const weeklyExpensesTotal = useMemo(() =>
     weeklyData.reduce((sum, day) => sum + day.expenses, 0),
   [weeklyData]);
 
-  // Monthly income — recomputes when transactions change
+  // Monthly income - recomputes when transactions change
   const monthlyIncome = useMemo(() => {
     const currentMonth = new Date().getMonth();
     return transactions

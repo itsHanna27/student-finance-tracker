@@ -1,0 +1,252 @@
+/* ── Overlay ── */
+.memberCardOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Modal ── */
+.memberCardModal {
+  background: #0d1021;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 20px;
+  padding: 32px;
+  width: 480px;
+  max-width: 90vw;
+  position: relative;
+  animation: memberCardPop 0.2s ease;
+}
+
+@keyframes memberCardPop {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* ── Close ── */
+.memberCardClose {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.memberCardClose:hover { color: white; }
+
+/* ── Label ── */
+.memberCardLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #A78BFA;
+  margin: 0 0 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Body ── */
+.memberCardBody {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── Avatar ── */
+.memberCardAvatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: #5b3fa6;
+  border: 3px solid rgba(167, 139, 250, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+.memberCardAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Info ── */
+.memberCardInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.memberCardName {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.memberCardWallets {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.memberCardLoading {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.3);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── ID Row ── */
+.memberCardIdRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 8px 12px;
+  flex-wrap: wrap;
+}
+
+.memberCardIdLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+.memberCardId {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.6);
+  font-family: monospace;
+  word-break: break-all;
+  flex: 1;
+}
+
+.memberCardCopyBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.memberCardCopyBtn:hover { background: rgba(255,255,255,0.18); }
+
+/* ── Actions ── */
+.memberCardActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.memberCardBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.memberCardAddFriend {
+  background: rgba(167, 139, 250, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  color: #A78BFA;
+}
+.memberCardAddFriend:hover:not(:disabled) {
+  background: rgba(167, 139, 250, 0.25);
+}
+
+.memberCardAlreadyFriend {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10B981;
+  cursor: default;
+}
+
+.memberCardKick {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #f87171;
+}
+.memberCardKick:hover {
+  background: rgba(248, 113, 113, 0.2);
+}
+
+.memberCardBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── You badge ── */
+.memberCardYouBadge {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.35);
+  font-style: italic;
+  margin: 4px 0 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Owner label variant ── */
+.memberCardLabel {
+  transition: color 0.2s;
+}
+
+.memberCardLabelOwner {
+  color: #f59e0b !important;
+  letter-spacing: 2px;
+}
+
+/* ── Kick divider ── */
+.memberCardDivider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin: 4px 0;
+}
+
+/* ── Kick button full width to stand out ── */
+.memberCardKick {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Request Sent state ── */
+.memberCardRequestSent {
+  background: #2441fb1a;
+  border: 1px solid #4b24fb4d;
+  color: #dad2da;
+  cursor: default;
+}

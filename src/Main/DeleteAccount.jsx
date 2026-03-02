@@ -89,7 +89,7 @@ const DeleteAccount = () => {
 
         <button
           onClick={handleDelete}
-          className={`delete-btn ${confirmed ? "active" : ""}`}
+          className={`delete ${confirmed ? "active" : ""}`}
         >
           Permanently Delete Account
         </button>

@@ -1,5 +1,5 @@
 import React from "react";
-import "./filter.css";
+import "../ModalCSS/filter.css";
 
 const TYPE_OPTIONS = [
   { label: "Expense",            value: "expense"            },

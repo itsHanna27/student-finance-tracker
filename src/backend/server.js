@@ -19,6 +19,9 @@ const balanceRoutes = require("./routes/balanceRoutes");
 const groqRoutes = require("./routes/groqRoutes");
 const sharedWalletRoutes = require('./routes/sharedWalletRoutes');
 const notificationRoutes = require("./routes/NotificationRoutes");
+const communityRoutes = require("./routes/communityRoutes");
+const messageRoutes = require("./routes/Messageroutes");
+
 
 const app = express();
 const PORT = 5000;
@@ -56,6 +59,8 @@ app.use("/", uploadAvatarRouter);
 app.use("/", userRoutes);
 app.use("/", transactionRoutes);
 app.use("/", notificationRoutes);
+app.use("/", communityRoutes);
+app.use("/", messageRoutes);
 
 // Test route 
 app.get("/", (req, res) => {
@@ -74,7 +79,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// ✅ Signup route — now returns userId and user info as JSON
+// Signup route 
 app.post("/signup", async (req, res) => {
   try {
     const { name, surname, email, password } = req.body;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./addBudget.css";
+import "../ModalCSS/addBudget.css";
 
 const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
   const [amountDigits, setAmountDigits] = useState(""); 
