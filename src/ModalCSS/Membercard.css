@@ -18,6 +18,8 @@
   padding: 32px;
   width: 480px;
   max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
   position: relative;
   animation: memberCardPop 0.2s ease;
 }
@@ -245,8 +247,221 @@
 
 /* ── Request Sent state ── */
 .memberCardRequestSent {
-  background: #2441fb1a;
-  border: 1px solid #4b24fb4d;
-  color: #dad2da;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
   cursor: default;
+}
+
+/* ── Owner Section ── */
+.memberCardOwnerSection {
+  margin-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding-top: 16px;
+}
+
+.memberCardOwnerToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(134, 53, 255, 0.265);
+  border: 1px solid rgba(151, 11, 245, 0.701);
+  border-radius: 10px;
+  color: #ffffff;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.2s;
+  justify-content: space-between;
+}
+.memberCardOwnerToggle:hover { background: rgba(47, 25, 86, 0.441); }
+
+/*  Owner Controls Panel  */
+.memberCardOwnerControls {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ownerControlBlock {
+  padding: 12px 0;
+}
+
+.ownerControlDivider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 4px 0;
+}
+
+.ownerControlLabel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  margin: 0 0 6px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ownerControlSub {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  margin: 0 0 10px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/*  Add Members  */
+.ownerControlSearch {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  font-size: 0.8rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+.ownerControlSearch::placeholder { color: rgba(255,255,255,0.3); }
+
+.ownerFriendList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.ownerFriendRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+}
+
+.ownerFriendAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #5b3fa6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: white;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ownerFriendAvatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.ownerFriendName {
+  flex: 1;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.8);
+  font-family: 'Poppins', sans-serif;
+}
+
+.ownerAddBtn {
+  background: rgba(167, 139, 250, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: 6px;
+  color: #a78bfa;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.ownerAddBtn:hover:not(:disabled) { background: rgba(167, 139, 250, 0.25); }
+.ownerAddBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ownerEmpty {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.25);
+  text-align: center;
+  padding: 8px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+/*  Reset Button  */
+.ownerResetBtn {
+  background: #b771f81a;
+  border: 1px solid #8171f84d;
+  border-radius: 8px;
+  color: #95a4d4;
+  padding: 7px 16px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.2s;
+}
+.ownerResetBtn:hover { background: #a971f833; }
+
+/*  Schedule Row  */
+.ownerScheduleRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ownerScheduleSelect {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  font-size: 0.8rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  cursor: pointer;
+}
+.ownerScheduleSelect option { background: #1a1035; color: white; }
+
+.ownerSaveBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(167, 139, 250, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: 8px;
+  color: #a78bfa;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.ownerSaveBtn:hover:not(:disabled) { background: rgba(167, 139, 250, 0.25); }
+.ownerSaveBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Scrollbars  */
+.memberCardModal::-webkit-scrollbar,
+.ownerFriendList::-webkit-scrollbar {
+  width: 4px;
+}
+.memberCardModal::-webkit-scrollbar-track,
+.ownerFriendList::-webkit-scrollbar-track {
+  background: transparent;
+}
+.memberCardModal::-webkit-scrollbar-thumb,
+.ownerFriendList::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 250, 0.3);
+  border-radius: 99px;
+}
+.memberCardModal::-webkit-scrollbar-thumb:hover,
+.ownerFriendList::-webkit-scrollbar-thumb:hover {
+  background: rgba(167, 139, 250, 0.6);
 }

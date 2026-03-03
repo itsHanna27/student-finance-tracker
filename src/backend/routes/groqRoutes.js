@@ -1,21 +1,19 @@
 const express = require("express");
 const router = express.Router();
 
-
 console.log("Node version:", process.version);
 console.log("fetch exists:", typeof fetch);
 
 router.post("/groq", async (req, res) => {
   try {
-    const { userMessage, financialContext } = req.body;
-      console.log(" User message:", userMessage);
+    const { userMessage, financialContext, conversationHistory = [] } = req.body;
+    console.log("User message:", userMessage);
     console.log("Financial context:", JSON.stringify(financialContext, null, 2));
-    console.log(" Budget status specifically:", financialContext.budgetStatus);
+    console.log("Budget status specifically:", financialContext.budgetStatus);
 
     if (!userMessage) return res.status(400).json({ error: "No message provided" });
 
-    // Build the system prompt with financial context
- const systemPrompt = `You are Bestie, a friendly and supportive personal finance assistant for a UK-based student finance app.
+    const systemPrompt = `You are Bestie, a friendly and supportive personal finance assistant for a UK-based student finance app.
 
 User's Financial Context:
 - Name: ${financialContext.userName || "Friend"}
@@ -33,7 +31,18 @@ FRIENDS:
 - Add friends: Profile → Friends tab → "Add Friend" → Enter their ID or name → They accept
 - View friends: Profile → Friends tab shows all your friends
 - Remove friends: Profile → Friends → Click "Remove" next to their name
-- Share Wallet: Friends can create a shared wallet together to save for joint goals or track shared expenses
+
+SHARED WALLETS:
+- Create shared wallet: Shared Wallet page → "Make new wallet" → Add title, members (friends), split type and budget → Save
+- Split types: "Equal split" divides total equally per person. "Manual split" lets you track spending against a set budget
+- Open a wallet: Shared Wallet page → Click "Open" on any wallet card
+- Add transactions: Inside wallet → Enter description, amount, who paid → Add. Adding someone to a wallet is instant — they don't need to accept, they're immediately a member.
+- View transactions: Inside wallet → "View Transactions" button shows full history
+- Member cards: Click any member's avatar to see their profile, add them as a friend, or (if you're the owner) remove them
+- Owner controls: Click YOUR own avatar inside the wallet → "Owner Controls" → Add new members (from your friends list), reset all transactions, or set an auto-reset schedule (weekly/monthly/yearly)
+- Auto reset: Transactions automatically delete on your chosen schedule — great for monthly bills or weekly house expenses
+- Leave wallet: Inside wallet → "Leave" button → Confirms before removing you
+- Notifications: Members get notified when they're added, when transactions are added, or when they're removed
 
 BUDGETS:
 - Create budget: Account → Budget tab → Choose weekly or monthly → Set amount → Save
@@ -85,6 +94,7 @@ Always base your advice on their ACTUAL financial data shown above. If they ask 
           model: "llama-3.3-70b-versatile",
           messages: [
             { role: "system", content: systemPrompt },
+            ...conversationHistory,
             { role: "user", content: userMessage },
           ],
           temperature: 0.7,
@@ -107,18 +117,13 @@ Always base your advice on their ACTUAL financial data shown above. If they ask 
     }
 
     const data = await groqResponse.json();
-    
-  
     const aiReply = data.choices?.[0]?.message?.content || "Hmm, I didn't catch that. Can you try again?";
-    
-    res.json({ 
-      reply: aiReply,
-      usage: data.usage 
-    });
+
+    res.json({ reply: aiReply, usage: data.usage });
 
   } catch (err) {
     console.error("❌ Groq error:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Groq connection failed",
       reply: "I'm having connection issues right now 💔 Try again in a sec!"
     });

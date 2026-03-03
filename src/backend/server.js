@@ -10,6 +10,7 @@ const User = require("./models/User");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+require('./resetCron');
 
 // Import routes
 const transactionRoutes = require("./routes/transactionRoutes");
@@ -61,6 +62,7 @@ app.use("/", transactionRoutes);
 app.use("/", notificationRoutes);
 app.use("/", communityRoutes);
 app.use("/", messageRoutes);
+
 
 // Test route 
 app.get("/", (req, res) => {
