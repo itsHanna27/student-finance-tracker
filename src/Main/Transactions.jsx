@@ -283,9 +283,7 @@ const Transactions = () => {
       const type = t.type?.toLowerCase();
       return type !== "saving" && type !== "budget" && type !== "studentfinance";
     });
-
-    // Expand studentFinancePayments into individual rows, only if due
-    // ── FIX: carry real _id + _sfTermIndex so edit/delete work correctly ──
+    
     const sfRows = transactions
       .filter(t => t.type?.toLowerCase() === "studentfinance")
       .flatMap(t =>
