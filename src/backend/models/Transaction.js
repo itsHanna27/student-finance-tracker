@@ -4,14 +4,14 @@ const transactionSchema = new mongoose.Schema({
   date: String,
   type: String,
   category: String,
-  name: String,           
+  name: String,
   description: String,
   amount: Number,
-  frequency: String,     
+  frequency: String,
   studentFinancePayments: Array,
   userId: { type: String, required: true },
-  
-  // Fields for budgeting/saving
+
+  // Budgeting/saving fields
   period: {
     type: String,
     enum: ["weekly", "monthly"],
@@ -19,6 +19,12 @@ const transactionSchema = new mongoose.Schema({
   title: String,
   startDate: String,
   currentSaved: { type: Number, default: 0 },
+
+  // Recurring transaction fields
+  parentId: { type: String, default: null }, 
+      // set on generated copies, null on originals
+  lastProcessed: { type: Date, default: null },  // tracks when original was last duplicated
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("Transaction", transactionSchema);

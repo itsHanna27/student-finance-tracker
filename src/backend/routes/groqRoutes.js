@@ -24,6 +24,11 @@ User's Financial Context:
 - Top 3 Categories: ${financialContext.categories?.map(c => `${c.name} (${c.percentage}%)`).join(', ') || 'No data'}
 - Budget Status: ${financialContext.budgetStatus ? financialContext.budgetStatus.map(b => `${b.period}: ${b.exceeded ? 'Over budget' : `${Math.round(b.percentSpent)}% used`}`).join(', ') : 'No budgets set'}
 - Savings Goals: ${financialContext.savingsProgress && Array.isArray(financialContext.savingsProgress) ? financialContext.savingsProgress.map(g => `${g.period}: £${g.current.toFixed(2)}/£${g.goal.toFixed(2)}`).join(', ') : 'None set'}
+- Recent Transactions (last 10): ${financialContext.recentTransactions?.length > 0 ? financialContext.recentTransactions.map(t => `${t.date}: £${t.amount.toFixed(2)} on ${t.description} (${t.category})`).join(', ') : 'None'}
+- This Month's Spending: £${financialContext.monthSpend?.toFixed(2) || "0.00"}
+- Monthly Budget Used: ${financialContext.budgetStatus?.find(b => b.period === "monthly") ? `${Math.round(financialContext.budgetStatus.find(b => b.period === "monthly").percentSpent)}%` : "No monthly budget set"}
+- Monthly Saving Goal Progress: ${financialContext.savingsProgress?.find(g => g.period === "monthly") ? `£${financialContext.savingsProgress.find(g => g.period === "monthly").current.toFixed(2)}/£${financialContext.savingsProgress.find(g => g.period === "monthly").goal.toFixed(2)}` : "No monthly goal set"}
+- Top Spending This Month: ${financialContext.monthlyTopCategory ? `${financialContext.monthlyTopCategory.name} (£${financialContext.monthlyTopCategory.amount.toFixed(2)})` : "No data"}
 
 📱 App Features & How-To Guide:
 
@@ -79,6 +84,8 @@ Your personality:
 - Use British currency (£) and spelling
 - Be enthusiastic about their financial wins!
 - When asked about app features, give clear step-by-step instructions
+- Prioritise monthly data when giving spending advice unless the user specifically asks about another period
+- When summarising finances, lead with monthly figures first
 
 Always base your advice on their ACTUAL financial data shown above. If they ask about budgeting, saving, or spending, reference their real numbers.`;
 
@@ -105,14 +112,14 @@ Always base your advice on their ACTUAL financial data shown above. If they ask 
 
     if (!groqResponse.ok) {
       const errorText = await groqResponse.text();
-      console.error("❌ Groq API error");
+      console.error("Groq API error");
       console.error("Status:", groqResponse.status);
       console.error("Body:", errorText);
 
       return res.status(500).json({
         error: "Groq API failed",
         status: groqResponse.status,
-        reply: "Oops! My brain's taking a break right now 😅 Try asking me about your balance or spending instead!"
+        reply: "Oops! My brain's taking a break right now! Try asking me about your balance or spending instead!"
       });
     }
 
@@ -122,10 +129,10 @@ Always base your advice on their ACTUAL financial data shown above. If they ask 
     res.json({ reply: aiReply, usage: data.usage });
 
   } catch (err) {
-    console.error("❌ Groq error:", err);
+    console.error("Groq error:", err);
     res.status(500).json({
       error: "Groq connection failed",
-      reply: "I'm having connection issues right now 💔 Try again in a sec!"
+      reply: "I'm having connection issues right now. Try again in a sec!"
     });
   }
 });

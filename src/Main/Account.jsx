@@ -8,6 +8,7 @@ import FriendRequest from "./friendrequest";
 import BudgetandSaving from "./BudgetandSaving";
 import Transactions from "./Transactions";
 import DeleteAccount from "./DeleteAccount";
+import Appearance from "./Appearance";
 import "../css/Account.css";
 import Bestie from "../Modal/bestie";
 import useFinanceData from "../hooks/FinanceData";
@@ -163,7 +164,7 @@ const Account = () => {
       <div className="account-page">
         <h1 className="account-title" style={{ fontWeight: "600" }}>Account Settings</h1>
         <div className="account-container">
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
+          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
           <div className="account-card">
             {activeTab === "profile" && <ProfileSection user={user} avatar={avatar} setFile={setFile} setUser={setUser} />}
             {activeTab === "friends" && <Friends />}
@@ -172,6 +173,7 @@ const Account = () => {
             {activeTab === "budget" && <BudgetandSaving setActiveTab={setActiveTab} />}
             {activeTab === "transactions" && <Transactions setActiveTab={setActiveTab} />}
             {activeTab === "deleteAccount" && <DeleteAccount />}
+            {activeTab === "appearance" && <Appearance />}
           </div>
         </div>
       </div>

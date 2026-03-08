@@ -11,6 +11,8 @@ import BudgetandSaving from "./Main/BudgetandSaving";
 import Community from "./Main/Community";
 import SharedWallet from "./Main/SharedWallet";
 import Notification from "./Main/Notification";
+import Appearance from "./Main/Appearance";
+
 
 function App() {
   return (
@@ -31,6 +33,7 @@ function App() {
         <Route path="/SharedWallet" element={<SharedWallet />} />
         <Route path="/Notification" element={<Notification />} />
         <Route path="/Community" element={<Community />} />
+         <Route path="/Appearance" element={<Appearance />} />
       </Routes>
     </Router>
   );

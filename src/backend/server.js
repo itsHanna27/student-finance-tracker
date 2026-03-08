@@ -1,5 +1,5 @@
 require("dotenv").config();
-console.log("GROQ KEY:", process.env.GROQ_API_KEY ? "✅ loaded" : "❌ missing");
+console.log("GROQ KEY:", process.env.GROQ_API_KEY ? " loaded" : " missing");
 console.log("THIS SERVER FILE IS RUNNING");
 
 const express = require("express");
@@ -22,7 +22,6 @@ const sharedWalletRoutes = require('./routes/sharedWalletRoutes');
 const notificationRoutes = require("./routes/NotificationRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 const messageRoutes = require("./routes/Messageroutes");
-
 
 const app = express();
 const PORT = 5000;

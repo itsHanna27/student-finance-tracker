@@ -308,10 +308,15 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
             categories: getSpendingByCategory(),
             budgetStatus: getBudgetStatus(),
             savingsProgress: getSavingGoalProgress(),
+            recentTransactions: transactions
+              .filter(t => t.amount < 0 && t.type !== "saving" && t.type !== "budget" && t.type !== "income" && t.type !== "studentFinance")
+              .sort((a, b) => new Date(b.date) - new Date(a.date))
+              .slice(0, 10)
+              .map(t => ({ description: t.description || t.category, amount: Math.abs(t.amount), category: t.category, date: new Date(t.date).toLocaleDateString() })),
           },
         }),
       });
-//error responses
+
       const data = await response.json();
       return data?.reply || "Hmm my brain lagged for a sec 😭 try again?";
     } catch (err) {
@@ -338,7 +343,7 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
     const smartResponse = generateResponse(currentInput);
 
     if (smartResponse) {
-      console.log(" Using smart response - no API call needed!");
+      console.log("Using smart response - no API call needed!");
       setTimeout(() => {
         setMessages((prev) => [...prev, { id: Date.now() + 1, sender: "bestie", text: smartResponse, timestamp: new Date() }]);
         setIsTyping(false);

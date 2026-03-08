@@ -56,6 +56,7 @@ const Transactions = () => {
   const filterRef = useRef(null);
   const currentUser = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
+  const [pieChartPeriod, setPieChartPeriod] = useState("alltime");
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -290,14 +291,14 @@ const Transactions = () => {
         (t.studentFinancePayments || [])
           .filter(p => p.date && new Date(p.date) <= today)
           .map((p, i) => ({
-         _id: t._id?.toString(),                      // real MongoDB _id for delete
-            _sfTermIndex: i,                          // which term this row is
+         _id: t._id?.toString(),                     
+            _sfTermIndex: i,                   
             type: "studentfinance",
             category: "Student Finance",
             description: `Term ${i + 1}`,
             date: p.date,
             amount: Math.abs(p.amount),
-            studentFinancePayments: t.studentFinancePayments, // needed by edit modal
+            studentFinancePayments: t.studentFinancePayments,
           }))
       );
 
@@ -338,22 +339,20 @@ const Transactions = () => {
     }
   };
 
-  const handleDeleteTransaction = async (id) => {
-    try {
-      const res = await fetch(`http://localhost:5000/transactions/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Delete failed");
-      setTransactions(transactions.filter(t => t._id !== id));
-      setIsEditTransactionOpen(false);
-      recalculateBalance();
-    } catch (err) {
-      console.error(err);
-      alert("Could not delete transaction. Please try again.");
-    }
-  };
-
+ const handleDeleteTransaction = async (id) => {
+  setIsEditTransactionOpen(false);
+  try {
+    const res = await fetch(`http://localhost:5000/transactions/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Delete failed");
+    setTransactions(prev => prev.filter(t => t._id !== id));
+    recalculateBalance();
+  } catch (err) {
+    console.error(err);
+  }
+};
   const PIE_COLORS = ["#b387ff", "#f5a6ff", "#c45bff", "#f4caff", "#9b59b6"];
 
-  const lineData = React.useMemo(() => {
+   const lineData = React.useMemo(() => {
     if (lineChartPeriod === "weekly") {
       const days = [];
       const today = new Date();
@@ -374,7 +373,8 @@ const Transactions = () => {
         days.push({ month: dayNames[date.getDay()], value: daySpending });
       }
       return days;
-    } else {
+
+    } else if (lineChartPeriod === "monthly") {
       const months = [];
       const today = new Date();
       for (let i = 11; i >= 0; i--) {
@@ -392,29 +392,56 @@ const Transactions = () => {
         months.push({ month: monthDate.toLocaleDateString('en-US', { month: 'short' }), value: monthSpending });
       }
       return months;
+
+    } else {
+      // yearly - last 5 years
+      const years = [];
+      const currentYear = new Date().getFullYear();
+      for (let i = 4; i >= 0; i--) {
+        const year = currentYear - i;
+        const yearStart = new Date(year, 0, 1);
+        const yearEnd = new Date(year, 11, 31, 23, 59, 59, 999);
+        const yearSpending = transactions
+          .filter(t => {
+            if (t.type === "saving" || t.type === "budget" || t.type === "income" || t.type === "studentFinance") return false;
+            if (t.amount >= 0) return false;
+            const d = new Date(t.date);
+            return d >= yearStart && d <= yearEnd;
+          })
+          .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        years.push({ month: String(year), value: yearSpending });
+      }
+      return years;
     }
   }, [transactions, lineChartPeriod]);
-
+  
   const pieData = React.useMemo(() => {
-    const categoryTotals = {};
-    transactions.forEach((t) => {
-      if (t.amount >= 0) return;
-      if (t.type === "saving" || t.type === "budget" || t.type === "income" || t.type === "studentFinance") return;
-      const category = t.category?.trim().toLowerCase() || "other";
-      const isHouseBills = ["house_rent", "house rent", "rent", "bills", "utilities", "housing"].includes(category);
-      if (!includeHouseRent && isHouseBills) return;
-      const categoryName = t.category?.trim() || "Other";
-      categoryTotals[categoryName] = (categoryTotals[categoryName] || 0) + Math.abs(t.amount);
-    });
-    const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
-    const topFive = sorted.slice(0, 5);
-    const rest = sorted.slice(5);
-    const data = topFive.map(([name, value]) => ({ name, value }));
-    if (rest.length > 0) {
-      data.push({ name: "Other", value: rest.reduce((sum, [, v]) => sum + v, 0) });
-    }
-    return data;
-  }, [transactions, includeHouseRent]);
+  const categoryTotals = {};
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  transactions.forEach((t) => {
+    if (t.amount >= 0) return;
+    if (t.type === "saving" || t.type === "budget" || t.type === "income" || t.type === "studentFinance") return;
+    const category = t.category?.trim().toLowerCase() || "other";
+    const isHouseBills = ["house_rent", "house rent", "rent", "bills", "utilities", "housing"].includes(category);
+    if (!includeHouseRent && isHouseBills) return;
+
+    if (pieChartPeriod === "monthly" && new Date(t.date) < monthStart) return;
+
+    const categoryName = t.category?.trim() || "Other";
+    categoryTotals[categoryName] = (categoryTotals[categoryName] || 0) + Math.abs(t.amount);
+  });
+
+  const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+  const topFive = sorted.slice(0, 5);
+  const rest = sorted.slice(5);
+  const data = topFive.map(([name, value]) => ({ name, value }));
+  if (rest.length > 0) {
+    data.push({ name: "Other", value: rest.reduce((sum, [, v]) => sum + v, 0) });
+  }
+  return data;
+}, [transactions, includeHouseRent, pieChartPeriod]);
 
   const editBalance = () => setIsEditBalanceOpen(true);
 
@@ -586,9 +613,13 @@ const Transactions = () => {
             <div className="charts-container">
               <div style={{ width: "600px" }} className="chart-card">
                 <h3 className="chart-title" style={{ marginBottom: "30px" }}>Spending Over Time</h3>
-                <div className="chart-tag" onClick={() => setLineChartPeriod(lineChartPeriod === "weekly" ? "monthly" : "weekly")} style={{ cursor: "pointer" }}>
-                  {lineChartPeriod === "weekly" ? "Weekly" : "Monthly"}
-                </div>
+              <div className="chart-tag" onClick={() => {
+              if (lineChartPeriod === "weekly") setLineChartPeriod("monthly");
+              else if (lineChartPeriod === "monthly") setLineChartPeriod("yearly");
+              else setLineChartPeriod("weekly");
+            }} style={{ cursor: "pointer" }}>
+              {lineChartPeriod === "weekly" ? "Weekly" : lineChartPeriod === "monthly" ? "Monthly" : "Yearly"}
+            </div>
                 <ResponsiveContainer width="100%" height={270}>
                   <LineChart data={lineData}>
                     <XAxis dataKey="month" stroke="#cda9ff" tick={{ fontSize: 12 }} />
@@ -606,6 +637,10 @@ const Transactions = () => {
 
               <div className="chart-card pie-card">
                 <h3 className="chart-title" style={{ marginTop: "-8px" }}>Spending Breakdown</h3>
+
+                  <div className="chart-tag" onClick={() => setPieChartPeriod(p => p === "alltime" ? "monthly" : "alltime")} style={{ cursor: "pointer", marginTop:"30px" }}>
+                    {pieChartPeriod === "alltime" ? "All Time" : "Monthly"}
+                  </div>
                 <label className="rent-toggle">
                   <input type="checkbox" checked={includeHouseRent} onChange={() => setIncludeHouseRent(!includeHouseRent)} />
                   <span className="slider" />

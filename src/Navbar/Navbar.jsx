@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./navbar.css";
-import { FaWallet, FaBell, FaUserPlus, FaUserCheck, FaThumbsUp, FaThumbsDown, FaComment } from "react-icons/fa";
+import { FaWallet, FaBell, FaUserPlus, FaUserCheck, FaThumbsUp, FaThumbsDown, FaComment, FaUserCircle, FaCog, FaSignOutAlt } from "react-icons/fa";
 
 const getNotifRoute = (type) => {
   if (type === "wallet_transaction" || type === "wallet_added") return "/SharedWallet";
@@ -55,7 +55,6 @@ const formatDays = (days) => {
   return `in ${days} days`;
 };
 
-// localStorage helpers
 const getDismissed = () => {
   try { return new Set(JSON.parse(localStorage.getItem("unibudget_dismissed_notifs") || "[]")); }
   catch { return new Set(); }
@@ -71,11 +70,33 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [cancelConfirmId, setCancelConfirmId] = useState(null);
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const panelRef = useRef(null);
   const bellRef = useRef(null);
+  const avatarRef = useRef(null);
+  const avatarDropdownRef = useRef(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const navigate = useNavigate();
+
+  // Close avatar dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (
+        avatarDropdownRef.current && !avatarDropdownRef.current.contains(e.target) &&
+        avatarRef.current && !avatarRef.current.contains(e.target)
+      ) {
+        setAvatarOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   const handleNotifClick = async (n) => {
     await markRead(n);
@@ -98,8 +119,6 @@ const Navbar = () => {
       sevenDaysAgo.setDate(today.getDate() - 7);
 
       if (currentUser.id) {
-
-        // DB notifications (friend requests, wallet, community)
         try {
           const notifRes = await fetch(`http://localhost:5000/notifications/${currentUser.id}`);
           const dbNotifs = await notifRes.json();
@@ -107,38 +126,28 @@ const Navbar = () => {
             dbNotifs.forEach((n) => {
               if (dismissed.has(n._id)) return;
               built.push({
-                id: n._id,
-                dbId: n._id,
-                type: n.type,
-                title: n.title,
-                message: n.message,
+                id: n._id, dbId: n._id,
+                type: n.type, title: n.title, message: n.message,
                 time: new Date(n.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
-                unread: !n.read,
-                fromDB: true,
+                unread: !n.read, fromDB: true,
               });
             });
           }
         } catch (e) { console.error("Failed to fetch DB notifications:", e); }
 
-        // Transactions
         try {
           const txRes = await fetch(`http://localhost:5000/transactions?userId=${currentUser.id}`);
           const transactions = await txRes.json();
 
           transactions
-            .filter((t) => {
-              if (!["expense", "income"].includes(t.type?.toLowerCase())) return false;
-              if (!t.date) return false;
-              return new Date(t.date) >= sevenDaysAgo;
-            })
+            .filter((t) => ["expense", "income"].includes(t.type?.toLowerCase()) && t.date && new Date(t.date) >= sevenDaysAgo)
             .slice(0, 3)
             .forEach((t) => {
               const id = `tx-${t._id}`;
               if (dismissed.has(id)) return;
               const isIncome = t.amount > 0;
               built.push({
-                id,
-                type: "transaction",
+                id, type: "transaction",
                 title: isIncome ? "Payment Received" : "Expense Logged",
                 message: `${isIncome ? "+" : "-"}£${Math.abs(t.amount).toFixed(2)} — ${t.category || t.type}`,
                 time: new Date(t.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
@@ -146,49 +155,42 @@ const Navbar = () => {
               });
             });
 
-          // subscriptions → due soon
           transactions
-            .filter((t) => t.type?.toLowerCase() === "subscription" && t.date && t.frequency)
+            .filter((t) => t.type?.toLowerCase() === "subscription" && t.date && t.frequency && !t.parentId)
             .forEach((t) => {
               const id = `sub-${t._id}`;
               if (dismissed.has(id)) return;
               const daysUntil = getDaysUntilNext(t.date, t.frequency);
               if (daysUntil !== null && daysUntil <= 7) {
                 built.unshift({
-                  id,
-                  type: "reminder",
+                  id, type: "reminder",
                   title: `${t.category || "Subscription"} Due Soon`,
                   message: `Your ${t.frequency} payment of £${Math.abs(t.amount).toFixed(2)} is due ${formatDays(daysUntil)}.`,
-                  time: "Upcoming",
-                  unread: !read.has(id),
+                  time: "Upcoming", unread: !read.has(id),
                   recurring: true,
-                  recurringKey: `${t.category?.toLowerCase()}-subscription`,
+                  transactionId: t._id,
                 });
               }
             });
 
-          // house/bills → due soon
           transactions
-            .filter((t) => t.type?.toLowerCase() === "house" && t.date && t.frequency)
+            .filter((t) => t.type?.toLowerCase() === "house" && t.date && t.frequency && !t.parentId)
             .forEach((t) => {
               const id = `house-${t._id}`;
               if (dismissed.has(id)) return;
               const daysUntil = getDaysUntilNext(t.date, t.frequency);
               if (daysUntil !== null && daysUntil <= 7) {
                 built.unshift({
-                  id,
-                  type: "reminder",
+                  id, type: "reminder",
                   title: `${t.category || "House"} Payment Due`,
                   message: `Your ${t.frequency} payment of £${Math.abs(t.amount).toFixed(2)} is due ${formatDays(daysUntil)}.`,
-                  time: "Upcoming",
-                  unread: !read.has(id),
+                  time: "Upcoming", unread: !read.has(id),
                   recurring: true,
-                  recurringKey: `${t.category?.toLowerCase()}-house`,
+                  transactionId: t._id,
                 });
               }
             });
 
-          // student finance upcoming
           try {
             const allRes = await fetch(`http://localhost:5000/transactions/all?userId=${currentUser.id}`);
             const allTransactions = await allRes.json();
@@ -203,8 +205,7 @@ const Navbar = () => {
                   const diffDays = Math.ceil((payDate - today) / 86400000);
                   if (diffDays > 0 && diffDays <= 30) {
                     built.unshift({
-                      id,
-                      type: "reminder",
+                      id, type: "reminder",
                       title: `Student Finance Term ${i + 1}`,
                       message: `£${Math.abs(payment.amount).toFixed(2)} arriving ${formatDays(diffDays)}.`,
                       time: payDate.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
@@ -218,20 +219,17 @@ const Navbar = () => {
         } catch (e) { console.error("Failed to fetch transactions:", e); }
       }
 
-      // Budget warning
       const budgetAlertRaw = localStorage.getItem("unibudget_budget_alert");
       if (budgetAlertRaw && !dismissed.has("budget-alert")) {
         try {
           const alert = JSON.parse(budgetAlertRaw);
           built.unshift({
-            id: "budget-alert",
-            type: "alert",
+            id: "budget-alert", type: "alert",
             title: alert.exceeded ? "Budget Exceeded!" : "Budget Warning",
             message: alert.exceeded
               ? `You've exceeded your ${alert.period} budget by £${alert.exceededBy?.toFixed(2)}.`
               : `You've used over 80% of your ${alert.period} budget. £${alert.remaining?.toFixed(2)} remaining.`,
-            time: "Now",
-            unread: !read.has("budget-alert"),
+            time: "Now", unread: !read.has("budget-alert"),
           });
         } catch {}
       }
@@ -250,10 +248,7 @@ const Navbar = () => {
       if (
         panelRef.current && !panelRef.current.contains(e.target) &&
         bellRef.current && !bellRef.current.contains(e.target)
-      ) {
-        setOpen(false);
-        setCancelConfirmId(null);
-      }
+      ) { setOpen(false); setCancelConfirmId(null); }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -266,9 +261,7 @@ const Navbar = () => {
     notifications.forEach(n => read.add(n.id));
     saveRead(read);
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-    try {
-      await fetch(`http://localhost:5000/notifications/read-all/${currentUser.id}`, { method: "PUT" });
-    } catch {}
+    try { await fetch(`http://localhost:5000/notifications/read-all/${currentUser.id}`, { method: "PUT" }); } catch {}
   };
 
   const markRead = async (n) => {
@@ -292,15 +285,16 @@ const Navbar = () => {
     }
   };
 
-  const cancelRecurring = (n) => {
+  const cancelRecurring = async (n) => {
     try {
-      const stored = JSON.parse(localStorage.getItem("unibudget_recurring") || "[]");
-      const updated = stored.filter(
-        (t) => `${t.category?.toLowerCase()}-${t.type}` !== n.recurringKey
-      );
-      localStorage.setItem("unibudget_recurring", JSON.stringify(updated));
-    } catch {}
+      await fetch(`http://localhost:5000/transactions/${n.transactionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ frequency: null }),
+      });
+    } catch (err) { console.error("Failed to cancel recurring:", err); }
     dismiss(n);
+    setCancelConfirmId(null);
   };
 
   return (
@@ -315,9 +309,61 @@ const Navbar = () => {
           <li><NavLink to="/transactions" className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Transactions</NavLink></li>
           <li><NavLink to="/SharedWallet" className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Shared Wallets</NavLink></li>
           <li><NavLink to="/community"    className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Community</NavLink></li>
-          <li><NavLink to="/account"      className={({ isActive }) => isActive ? "nav-active" : "nav-link"}>Account</NavLink></li>
         </ul>
 
+
+ {/* Avatar dropdown */}
+        <div className="avatar-nav-wrapper" ref={avatarRef}>
+          <button
+            className="avatar-nav-btn"
+            onClick={() => setAvatarOpen((o) => !o)}
+            aria-label="Account menu"
+          >
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt="avatar" className="avatar-nav-img" />
+            ) : (
+              <div className="avatar-nav-fallback">
+                {currentUser.name?.charAt(0).toUpperCase() || <FaUserCircle size={22} />}
+              </div>
+            )}
+          </button>
+
+          {avatarOpen && (
+            <div className="avatar-dropdown" ref={avatarDropdownRef}>
+              <div className="avatar-dropdown-info">
+                <div className="avatar-dropdown-avatar">
+                  {currentUser.avatar ? (
+                    <img src={currentUser.avatar} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                  ) : (
+                    <span>{currentUser.name?.charAt(0).toUpperCase() || "?"}</span>
+                  )}
+                </div>
+                <div>
+                  <p className="avatar-dropdown-name">{currentUser.name} {currentUser.surname}</p>
+                  <p className="avatar-dropdown-email">{currentUser.email}</p>
+                </div>
+              </div>
+
+              <div className="avatar-dropdown-divider" />
+
+              <button
+                className="avatar-dropdown-item"
+                onClick={() => { setAvatarOpen(false); navigate("/account"); }}
+              >
+                <FaCog size={14} /> Account Settings
+              </button>
+
+              <button
+                className="avatar-dropdown-item avatar-dropdown-logout"
+                onClick={handleLogout}
+              >
+                <FaSignOutAlt size={14} /> Log Out
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Bell */}
         <div className="bell-wrapper" ref={bellRef}>
           <button
             className="bell-btn"
@@ -342,9 +388,7 @@ const Navbar = () => {
 
               <div className="notif-dropdown-list">
                 {notifications.length === 0 ? (
-                  <div className="notif-dropdown-empty">
-                    <p>No new notifications</p>
-                  </div>
+                  <div className="notif-dropdown-empty"><p>No new notifications</p></div>
                 ) : (
                   <>
                     {notifications.map((n) => {
@@ -374,7 +418,7 @@ const Navbar = () => {
                                   </button>
                                 ) : (
                                   <div className="notif-cancel-confirm">
-                                    <span>Stop this recurring payment?</span>
+                                    <span>Are you sure you want to cancel the recurrence?</span>
                                     <div className="notif-cancel-confirm-btns">
                                       <button className="notif-cancel-yes" onClick={() => cancelRecurring(n)}>Yes, cancel</button>
                                       <button className="notif-cancel-no" onClick={() => setCancelConfirmId(null)}>Keep it</button>
@@ -394,10 +438,7 @@ const Navbar = () => {
                     })}
 
                     <div className="notif-dropdown-footer">
-                      <button
-                        className="notif-view-all-btn"
-                        onClick={() => { setOpen(false); navigate("/Notification"); }}
-                      >
+                      <button className="notif-view-all-btn" onClick={() => { setOpen(false); navigate("/Notification"); }}>
                         View all notifications
                       </button>
                     </div>
@@ -407,6 +448,8 @@ const Navbar = () => {
             </div>
           )}
         </div>
+
+       
       </div>
     </nav>
   );

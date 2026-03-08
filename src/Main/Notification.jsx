@@ -121,9 +121,9 @@ const Notification = () => {
             });
           });
 
-        // Subscriptions due soon
+        // Subscriptions due soon — only originals
         transactions
-          .filter((t) => t.type?.toLowerCase() === "subscription" && t.date && t.frequency)
+          .filter((t) => t.type?.toLowerCase() === "subscription" && t.date && t.frequency && !t.parentId)
           .forEach((t) => {
             const id = `sub-${t._id}`;
             if (dismissed.has(id)) return;
@@ -136,14 +136,14 @@ const Notification = () => {
                 time: "Upcoming", date: "Today",
                 unread: !read.has(id),
                 recurring: true,
-                recurringKey: `${t.category?.toLowerCase()}-subscription`,
+                transactionId: t._id,
               });
             }
           });
 
-        // House/bills due soon
+        // House/bills due soon — only originals
         transactions
-          .filter((t) => t.type?.toLowerCase() === "house" && t.date && t.frequency)
+          .filter((t) => t.type?.toLowerCase() === "house" && t.date && t.frequency && !t.parentId)
           .forEach((t) => {
             const id = `house-${t._id}`;
             if (dismissed.has(id)) return;
@@ -156,7 +156,7 @@ const Notification = () => {
                 time: "Upcoming", date: "Today",
                 unread: !read.has(id),
                 recurring: true,
-                recurringKey: `${t.category?.toLowerCase()}-house`,
+                transactionId: t._id,
               });
             }
           });
@@ -267,15 +267,21 @@ const Notification = () => {
     }
   };
 
-  const cancelRecurring = (n) => {
+  const [cancelConfirmId, setCancelConfirmId] = useState(null);
+
+    const cancelRecurring = async (n) => {
     try {
-      const stored = JSON.parse(localStorage.getItem("unibudget_recurring") || "[]");
-      const updated = stored.filter(
-        (t) => `${t.category?.toLowerCase()}-${t.type}` !== n.recurringKey
-      );
-      localStorage.setItem("unibudget_recurring", JSON.stringify(updated));
-    } catch {}
+      // remove frequency so no future copies are created
+      await fetch(`http://localhost:5000/transactions/${n.transactionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ frequency: null }),
+      });
+    } catch (err) {
+      console.error("Failed to cancel recurring:", err);
+    }
     dismiss(n);
+    setCancelConfirmId(null);
   };
 
   const deleteAll = async () => {
@@ -410,12 +416,21 @@ const Notification = () => {
                               {cfg.label}
                             </span>
                             {n.recurring && (
-                              <button
-                                className="notif-cancel-btn"
-                                onClick={(e) => { e.stopPropagation(); cancelRecurring(n); }}
-                              >
-                                Cancel recurring
-                              </button>
+                              <div onClick={(e) => e.stopPropagation()}>
+                                {cancelConfirmId !== n.id ? (
+                                  <button className="notif-cancel-btn" onClick={() => setCancelConfirmId(n.id)}>
+                                    Cancel recurring
+                                  </button>
+                                ) : (
+                                  <div className="notif-cancel-confirm">
+                                    <span style={{ fontSize: "12px", color: "#c4b5fd" }}>Are you sure you want to cancel the recurrence?</span>
+                                    <div className="notif-cancel-confirm-btns">
+                                      <button className="notif-cancel-yes" onClick={() => cancelRecurring(n)}>Yes, cancel</button>
+                                      <button className="notif-cancel-no" onClick={() => setCancelConfirmId(null)}>Keep it</button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>
