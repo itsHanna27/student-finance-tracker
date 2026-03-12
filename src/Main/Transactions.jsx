@@ -68,6 +68,18 @@ const Transactions = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  useEffect(() => {
+  const anyOpen = isAddTransactionOpen || isAddBudgetOpen || isWithdrawOpen || 
+    isEditTransactionOpen || isEditBalanceOpen || showCongratsModal;
+  
+  if (anyOpen) {
+    document.body.classList.add("modal-open");
+  } else {
+    document.body.classList.remove("modal-open");
+  }
+
+  return () => document.body.classList.remove("modal-open");
+}, [isAddTransactionOpen, isAddBudgetOpen, isWithdrawOpen, isEditTransactionOpen, isEditBalanceOpen, showCongratsModal]);
 
   const currentGoal = goalView === "saving"
     ? savingGoals[periodFilter]
@@ -450,27 +462,42 @@ const Transactions = () => {
   return (
     <>
       <style>{`
-        html, body, #root {
-          margin: 0;
-          padding: 0;
-          font-family: 'Poppins', sans-serif;
-          background: linear-gradient(100deg, #111827, #0F0F1A);
-          color: white;
-          width: 100%;
-          min-height: 100%;
-          overflow-x: hidden;
-        }
-        body::after {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(100deg, #111827, #0F0F1A);
-          z-index: -1;
-        }
-      `}</style>
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+  body:not([data-theme="light"]), body[data-theme="dark"] {
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+  }
+  body:not([data-theme="light"])::after, body[data-theme="dark"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+    z-index: -1;
+  }
+  body[data-theme="light"] {
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+  }
+  body[data-theme="light"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+    z-index: -1;
+  }
+`}</style>
 
       <Navbar />
       <Bestie
@@ -481,7 +508,7 @@ const Transactions = () => {
         userId={currentUser?.id}
       />
 
-      <div style={{ background: "linear-gradient(100deg, #111827, #0F0F1A)", minHeight: "100vh", width: "100%", color: "white", padding: "16px" }}>
+      <div style={{ minHeight: "100vh", width: "100%", color: "white", padding: "16px" }}>
         <div style={{ minHeight: "100vh", padding: "5px", textAlign: "center" }}>
           <h1 style={{ fontSize: "40px", fontWeight: "500", marginBottom: "0px", color: "#A78BFA" }}>
             Financial Overview

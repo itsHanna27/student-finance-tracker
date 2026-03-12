@@ -18,7 +18,7 @@ router.get("/api/posts", async (req, res) => {
 // POST create a new post
 router.post("/api/posts", async (req, res) => {
   try {
-    const { userId, title, text } = req.body;
+   const { userId, title, text, hashtags } = req.body;
     if (!userId || !title || !text)
       return res.status(400).json({ error: "Missing fields" });
 
@@ -33,6 +33,7 @@ router.post("/api/posts", async (req, res) => {
       avatar: user.avatar || initials,
       title,
       text,
+      hashtags: hashtags || [],  
     });
 
     await post.save();

@@ -76,19 +76,43 @@ export default function SharedWallet() {
 
   return (
     <>
-      <style>{`
-        html, body {
-          margin: 0; padding: 0;
-          font-family: 'Poppins', sans-serif;
-          background: linear-gradient(100deg, #111827, #0F0F1A);
-          color: white; width: 100%; min-height: 100%; overflow-x: hidden !important;
-        }
-        body::after {
-          content: ''; position: fixed; top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: linear-gradient(100deg, #111827, #0F0F1A); z-index: -1;
-        }
-      `}</style>
+     <style>{`
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+  body:not([data-theme="light"]), body[data-theme="dark"] {
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+  }
+  body:not([data-theme="light"])::after, body[data-theme="dark"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+    z-index: -1;
+  }
+  body[data-theme="light"] {
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+  }
+  body[data-theme="light"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+    z-index: -1;
+  }
+`}</style>
 
       <Navbar />
 

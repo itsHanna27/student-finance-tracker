@@ -1,19 +1,41 @@
 import React, { useState, useEffect } from "react";
 import "../css/Appearance.css";
 
-
 const Appearance = () => {
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") !== "light");
-  const [colourBlind, setColourBlind] = useState(() => localStorage.getItem("colourBlind") === "true");
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem("theme") !== "light";
+    } catch {
+      return true;
+    }
+  });
+
+  const [colourBlind, setColourBlind] = useState(() => {
+    try {
+      return localStorage.getItem("colourBlind") === "true";
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
-    document.body.setAttribute("data-theme", darkMode ? "dark" : "light");
-    localStorage.setItem("theme", darkMode ? "dark" : "light");
+    const theme = darkMode ? "dark" : "light";
+    console.log("Setting theme to:", theme);
+    document.body.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem("theme", theme);
+    } catch {
+      // blocked, ignore
+    }
   }, [darkMode]);
 
   useEffect(() => {
     document.body.setAttribute("data-colourblind", colourBlind ? "true" : "false");
-    localStorage.setItem("colourBlind", colourBlind);
+    try {
+      localStorage.setItem("colourBlind", colourBlind);
+    } catch {
+      // blocked, ignore
+    }
   }, [colourBlind]);
 
   return (
@@ -53,24 +75,6 @@ const Appearance = () => {
         </div>
         <label className="toggle-switch">
           <input type="checkbox" checked={!darkMode} onChange={() => setDarkMode((p) => !p)} />
-          <span className="toggle-slider" />
-        </label>
-      </div>
-
-      <div className="appearance-card">
-        <div className="appearance-card-left">
-          <div className="appearance-icon">
-            <i className="fa-solid fa-eye" />
-          </div>
-          <div className="appearance-card-text">
-            <p className="appearance-card-title">Colour Blind Mode</p>
-            <p className="appearance-card-desc">
-              Replaces red &amp; green with orange &amp; blue for better visibility.
-            </p>
-          </div>
-        </div>
-        <label className="toggle-switch">
-          <input type="checkbox" checked={colourBlind} onChange={() => setColourBlind((p) => !p)} />
           <span className="toggle-slider" />
         </label>
       </div>

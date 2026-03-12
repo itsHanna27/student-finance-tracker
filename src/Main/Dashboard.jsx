@@ -77,31 +77,46 @@ const Dashboard = () => {
   return (
     <>
       <style>{`
-        html, body, #root {
-          margin: 0;
-          padding: 0;
-          font-family: 'Poppins', sans-serif;
-          background: linear-gradient(100deg, #111827, #0F0F1A);
-          color: white;
-          width: 100%;
-          min-height: 100%;
-          overflow-x: hidden;
-        }
-        body::after {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(100deg, #111827, #0F0F1A);
-          z-index: -1;
-        }
-      `}</style>
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+  body:not([data-theme="light"]), body[data-theme="dark"] {
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+  }
+  body:not([data-theme="light"])::after, body[data-theme="dark"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+    z-index: -1;
+  }
+  body[data-theme="light"] {
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+  }
+  body[data-theme="light"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+    z-index: -1;
+  }
+`}</style>
 
       <Navbar />
 
-      <div style={{ background: "linear-gradient(100deg, #111827, #0F0F1A)", minHeight: "100vh", width: "100%", color: "white", padding: "16px" }}>
+      <div style={{  minHeight: "100vh", width: "100%", color: "white", padding: "16px" }}>
         {/* HERO SECTION */}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", paddingTop: "10px" }}>
           <h1 style={{ fontSize: "40px", fontWeight: "500", display: "flex", gap: "8px", alignItems: "center", margin: 0, paddingTop: "30px" }}>
@@ -218,12 +233,15 @@ const Dashboard = () => {
           </div>
         </Link>
 
+ <Link to="/Community" style={{ textDecoration: "none" }}>
         <div className="feature-card">
           <FaUsers className="feature-icon" />
           <h2 className="feature-title">Community</h2>
           <p className="feature-text">Learn, share, and support each other as students.</p>
         </div>
+        </Link>
       </div>
+      
     </>
   );
 };

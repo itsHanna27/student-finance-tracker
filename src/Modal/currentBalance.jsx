@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import "../ModalCSS/currentBalance.css";
 
 const CurrentBalance = ({ balance, setBalance, onClose, onAddTransaction }) => {
-  const [amountDigits, setAmountDigits] = useState(""); // store digits only
+  const [amountDigits, setAmountDigits] = useState("");
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
-    setAmountDigits(Math.round(balance * 100).toString()); 
+    setAmountDigits(Math.round(balance * 100).toString());
   }, [balance]);
 
-  // Format as £0.00
   const formatDisplay = () => {
     if (!amountDigits) return "£0.00";
     const num = parseFloat(amountDigits) / 100;
     return "£" + num.toFixed(2);
   };
 
-  // Only allow digits input
   const handleAmountChange = (e) => {
     let value = e.target.value.replace(/\D/g, "");
     if (value.length > 10) value = value.slice(0, 10);
@@ -31,11 +30,9 @@ const CurrentBalance = ({ balance, setBalance, onClose, onAddTransaction }) => {
       return;
     }
 
-    // Calculate difference before updating backend
     const difference = newBalance - balance;
 
     try {
-      // Update balance 
       const res = await fetch("http://localhost:5000/api/balance", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -44,7 +41,6 @@ const CurrentBalance = ({ balance, setBalance, onClose, onAddTransaction }) => {
       const data = await res.json();
       setBalance(Number(data.balance));
 
-      // Add transaction
       if (difference !== 0) {
         const transactionRes = await fetch("http://localhost:5000/transactions", {
           method: "POST",
@@ -69,7 +65,7 @@ const CurrentBalance = ({ balance, setBalance, onClose, onAddTransaction }) => {
     }
   };
 
-  return (
+  return createPortal(
     <div className="modal-overlay">
       <div className="container">
         <h2>Edit Balance</h2>
@@ -88,7 +84,8 @@ const CurrentBalance = ({ balance, setBalance, onClose, onAddTransaction }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./Main/Dashboard";
 import Transactions from "./Main/Transactions";
@@ -12,9 +13,16 @@ import Community from "./Main/Community";
 import SharedWallet from "./Main/SharedWallet";
 import Notification from "./Main/Notification";
 import Appearance from "./Main/Appearance";
+import "./css/light-mode.css";
 
 
 function App() {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      document.body.setAttribute("data-theme", savedTheme);
+    }
+  }, []);
   return (
     <Router>
       <Routes>

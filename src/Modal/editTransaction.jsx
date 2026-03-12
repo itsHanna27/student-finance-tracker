@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import "../ModalCSS/AddTransaction.css";
 import "../ModalCSS/editTransaction.css";
 
@@ -62,8 +63,6 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
   const allowFutureDate = ["subscription", "house", "studentFinance"].includes(type);
   const frequencies = ["Weekly", "Monthly", "Yearly"];
   const isRecurring = ["subscription", "house"].includes(type);
-
-  // True original ID — if editing a copy, use its parentId
   const trueOriginalId = transaction.parentId || _id;
 
   const categories = {
@@ -95,67 +94,6 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
 
   const sfTotal = sfTerms.reduce((sum, t) => sum + (parseFloat(t.amountDigits) / 100 || 0), 0);
 
-  const createMissedCopies = async (savedTransaction) => {
-    if (!isRecurring || !savedTransaction.frequency) return;
-
-    const now = new Date();
-    let baseDate = new Date(savedTransaction.date);
-    let copies = [];
-
-    while (true) {
-      const next = new Date(baseDate);
-      if (savedTransaction.frequency === "weekly")  next.setDate(next.getDate() + 7);
-      else if (savedTransaction.frequency === "monthly") next.setMonth(next.getMonth() + 1);
-      else if (savedTransaction.frequency === "yearly")  next.setFullYear(next.getFullYear() + 1);
-      else break;
-
-      if (next > now) break;
-      if (copies.length >= 24) break;
-
-      copies.push({
-        date: next.toISOString().split("T")[0],
-        type: savedTransaction.type,
-        category: savedTransaction.category,
-        description: savedTransaction.description,
-        amount: savedTransaction.amount,
-        frequency: savedTransaction.frequency,
-        userId: savedTransaction.userId,
-        parentId: trueOriginalId,
-      });
-
-      baseDate = next;
-    }
-
-    // Delete old copies first
-    try {
-      await fetch(`http://localhost:5000/recurring/delete-copies/${trueOriginalId}`, { method: "DELETE" });
-    } catch {}
-
-    // Create new copies
-    for (const copy of copies) {
-      try {
-        await fetch("http://localhost:5000/transactions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(copy),
-        });
-      } catch (err) {
-        console.error("Failed to create missed copy:", err);
-      }
-    }
-
-    if (copies.length > 0) {
-      try {
-        await fetch(`http://localhost:5000/transactions/${trueOriginalId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lastProcessed: now }),
-        });
-      } catch {}
-      console.log(`Recreated ${copies.length} copies for ${savedTransaction.category}`);
-    }
-  };
-
   const updateExistingCopies = async (savedTransaction) => {
     try {
       await fetch(`http://localhost:5000/recurring/update-copies/${trueOriginalId}`, {
@@ -168,7 +106,6 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
           frequency: savedTransaction.frequency,
         }),
       });
-      console.log(`Updated all copies for ${savedTransaction.category}`);
     } catch (err) {
       console.error("Failed to update copies:", err);
     }
@@ -196,10 +133,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
       };
     }
 
-    // Save just this transaction
     onSave(payload);
-
-    // If checkbox ticked, also update all copies
     if (isRecurring && updateAllCopies) {
       await updateExistingCopies(payload);
     }
@@ -209,17 +143,15 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
     e.stopPropagation();
     const transactionId = _id || id;
     if (!transactionId) { console.error("No transaction ID found for delete"); return; }
-    // If checkbox ticked, also delete all copies
     if (updateAllCopies && isRecurring) {
       try {
         await fetch(`http://localhost:5000/recurring/delete-copies/${trueOriginalId}`, { method: "DELETE" });
       } catch {}
     }
-    // Delete just this transaction
     onDelete(transactionId);
   };
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">Edit Transaction</h2>
@@ -306,15 +238,15 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
         )}
 
         {isRecurring && (
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "14px", padding: "10px 14px", background: "rgba(155,127,212,0.08)", borderRadius: "8px", border: "1px solid rgba(155,127,212,0.2)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "14px", padding: "10px 35px", background: "rgba(155,127,212,0.08)", borderRadius: "8px", border: "1px solid rgba(155,127,212,0.2)" }}>
             <input
               type="checkbox"
               id="updateAllCopies"
               checked={updateAllCopies}
               onChange={(e) => setUpdateAllCopies(e.target.checked)}
-              style={{ accentColor: "#9b7fd4", width: "16px", height: "16px", cursor: "pointer" }}
+              style={{ position:"absolute",accentColor: "#9b7fd4", width: "16px", height: "16px", cursor: "pointer",  top:"97.9vh", left:"40px"  }}
             />
-            <label htmlFor="updateAllCopies" style={{ fontSize: "13px", color: "#c4b5fd", cursor: "pointer", userSelect: "none" }}>
+            <label htmlFor="updateAllCopies" style={{ fontSize: "13px", color: "#c4b5fd", cursor: "pointer", userSelect: "none"}}>
               Update amount, description & category for all existing copies too
             </label>
           </div>
@@ -355,7 +287,8 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }) => {
           <button type="button" className="delete-btn" onClick={handleDelete}>🗑 Delete</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

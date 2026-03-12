@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FaTrophy, FaStar, FaTimes } from 'react-icons/fa';
 import '../ModalCSS/congrats.css';
 
@@ -6,12 +7,11 @@ const Congrats = ({ goalAmount, period, onClose, onCreateNew }) => {
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
-    // Stop confetti after animation
     const timer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
-  return (
+  return createPortal(
     <div className="congrats-overlay">
       <div className="congrats-modal">
         <button className="congrats-close" onClick={onClose}>
@@ -43,7 +43,7 @@ const Congrats = ({ goalAmount, period, onClose, onCreateNew }) => {
         <h1 className="congrats-title">🎉 Goal Achieved! 🎉</h1>
 
         <p className="congrats-message">
-          You’ve successfully reached your {period} savings goal of
+          You've successfully reached your {period} savings goal of
         </p>
 
         <p className="congrats-amount">£{goalAmount}</p>
@@ -66,7 +66,8 @@ const Congrats = ({ goalAmount, period, onClose, onCreateNew }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

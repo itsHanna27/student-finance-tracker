@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./navbar.css";
-import { FaWallet, FaBell, FaUserPlus, FaUserCheck, FaThumbsUp, FaThumbsDown, FaComment, FaUserCircle, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { FaWallet, FaBell, FaUserPlus, FaUserCheck, FaThumbsUp, FaThumbsDown, FaComment, FaUserCircle, FaCog, FaSignOutAlt, FaExclamationTriangle, FaPoundSign } from "react-icons/fa";
 
 const getNotifRoute = (type) => {
   if (type === "wallet_transaction" || type === "wallet_added") return "/SharedWallet";
@@ -12,26 +12,29 @@ const getNotifRoute = (type) => {
 };
 
 const typeConfig = {
-  alert:              { icon: "⚠️",                  bg: "#2a1a3e", color: "#f87171" },
-  transaction:        { icon: "💸",                  bg: "#1a1535", color: "#a78bfa" },
-  reminder:           { icon: "🔔",                  bg: "#1e1542", color: "#c4b5fd" },
-  friend_request:     { icon: "react:FaUserPlus",    bg: "#1e1542", color: "#9b7fd4" },
-  friend_accepted:    { icon: "react:FaUserCheck",   bg: "#1e1542", color: "#9b7fd4" },
-  wallet_transaction: { icon: "react:FaWallet",      bg: "#1a1535", color: "#d8b4fe" },
-  wallet_added:       { icon: "react:FaWallet",      bg: "#1a1535", color: "#d8b4fe" },
-  community_like:     { icon: "react:FaThumbsUp",    bg: "#1a1535", color: "#a78bfa" },
-  community_dislike:  { icon: "react:FaThumbsDown",  bg: "#2a1a3e", color: "#f87171" },
-  community_comment:  { icon: "react:FaComment",     bg: "#1e1542", color: "#c4b5fd" },
+  alert:              { icon: "react:FaExclamationTriangle", bg: "#2a1a3e", color: "#f87171" },
+  transaction:        { icon: "react:FaPoundSign",           bg: "#1a1535", color: "#a78bfa" },
+  reminder:           { icon: "react:FaBell",                bg: "#1e1542", color: "#c4b5fd" },
+  friend_request:     { icon: "react:FaUserPlus",            bg: "#1e1542", color: "#9b7fd4" },
+  friend_accepted:    { icon: "react:FaUserCheck",           bg: "#1e1542", color: "#9b7fd4" },
+  wallet_transaction: { icon: "react:FaWallet",              bg: "#1a1535", color: "#d8b4fe" },
+  wallet_added:       { icon: "react:FaWallet",              bg: "#1a1535", color: "#d8b4fe" },
+  community_like:     { icon: "react:FaThumbsUp",            bg: "#1a1535", color: "#a78bfa" },
+  community_dislike:  { icon: "react:FaThumbsDown",          bg: "#2a1a3e", color: "#f87171" },
+  community_comment:  { icon: "react:FaComment",             bg: "#1e1542", color: "#c4b5fd" },
 };
 
 const renderIcon = (icon, color) => {
-  if (icon === "react:FaUserPlus")   return <FaUserPlus size={14} color={color} />;
-  if (icon === "react:FaUserCheck")  return <FaUserCheck size={14} color={color} />;
-  if (icon === "react:FaWallet")     return <FaWallet size={14} color={color} />;
-  if (icon === "react:FaThumbsUp")   return <FaThumbsUp size={14} color={color} />;
-  if (icon === "react:FaThumbsDown") return <FaThumbsDown size={14} color={color} />;
-  if (icon === "react:FaComment")    return <FaComment size={14} color={color} />;
-  return icon;
+  if (icon === "react:FaExclamationTriangle") return <FaExclamationTriangle size={14} color={color} />;
+  if (icon === "react:FaPoundSign")           return <FaPoundSign size={14} color={color} />;
+  if (icon === "react:FaBell")                return <FaBell size={14} color={color} />;
+  if (icon === "react:FaUserPlus")            return <FaUserPlus size={14} color={color} />;
+  if (icon === "react:FaUserCheck")           return <FaUserCheck size={14} color={color} />;
+  if (icon === "react:FaWallet")              return <FaWallet size={14} color={color} />;
+  if (icon === "react:FaThumbsUp")            return <FaThumbsUp size={14} color={color} />;
+  if (icon === "react:FaThumbsDown")          return <FaThumbsDown size={14} color={color} />;
+  if (icon === "react:FaComment")             return <FaComment size={14} color={color} />;
+  return null;
 };
 
 const getDaysUntilNext = (startDateStr, frequency) => {

@@ -103,7 +103,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  background: #7c3aed;
   border-color: transparent;
 }
 

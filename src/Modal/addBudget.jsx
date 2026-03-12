@@ -1,38 +1,36 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import "../ModalCSS/addBudget.css";
 
 const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
   const [amountDigits, setAmountDigits] = useState(""); 
   const [isLoading, setIsLoading] = useState(false);
 
-  // check if no saving goal exists
   if (!savingGoal) {
-    return (
+    return createPortal(
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <h2>Error</h2>
           <p>No saving goal found. Please create a goal first.</p>
           <button className="cancel-btn" onClick={onClose}>Close</button>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  // Format input display (£0.00)
   const formatDisplay = () => {
     if (!amountDigits) return "£0.00";
     const num = parseFloat(amountDigits) / 100;
     return "£" + num.toFixed(2);
   };
 
-  // Handle numeric input
   const handleAmountChange = (e) => {
     let value = e.target.value.replace(/\D/g, "");
     if (value.length > 10) value = value.slice(0, 10);
     setAmountDigits(value);
   };
 
-  // Confirm addition
   const handleConfirm = async () => {
     if (!amountDigits || parseFloat(amountDigits) === 0) {
       alert("Please enter an amount");
@@ -44,7 +42,6 @@ const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
     try {
       setIsLoading(true);
 
-      // update weekly goal
       const currentSavedAmount = savingGoal.currentSaved || 0;
       const updatedWeeklyGoal = {
         ...savingGoal,
@@ -57,10 +54,7 @@ const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
         body: JSON.stringify(updatedWeeklyGoal),
       });
       if (!res.ok) throw new Error("Failed to update weekly goal");
-      const updatedWeeklyData = await res.json();
-      console.log("Weekly goal updated:", updatedWeeklyData);
 
-      //update monthly goal
       if (monthlyGoal) {
         const monthlySavedAmount = monthlyGoal.currentSaved || 0;
         const updatedMonthlyGoal = {
@@ -74,13 +68,9 @@ const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
           body: JSON.stringify(updatedMonthlyGoal),
         });
         if (!resMonthly.ok) throw new Error("Failed to update monthly goal");
-        const updatedMonthlyData = await resMonthly.json();
-        console.log("Monthly goal updated:", updatedMonthlyData);
       }
 
-      // Refresh parent
       if (onUpdate) await onUpdate();
-
       alert(`Successfully added £${amountToAdd.toFixed(2)} to your goal!`);
       onClose();
     } catch (err) {
@@ -95,15 +85,12 @@ const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
   const goalTarget = savingGoal?.amount || 0;
   const progress = goalTarget > 0 ? (goalSaved / goalTarget) * 100 : 0;
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>Add To Goal</h2>
 
-        <div
-          className="progress-row"
-          style={{ display: "flex", justifyContent: "space-between", width: "100%" }}
-        >
+        <div className="progress-row" style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
           <span>Progress</span>
           <span>£{goalSaved.toFixed(2)}/£{goalTarget.toFixed(2)}</span>
         </div>
@@ -120,19 +107,14 @@ const AddBudget = ({ onClose, savingGoal, monthlyGoal, onUpdate }) => {
         />
 
         <div className="modal-buttons">
-          <button 
-            className="confirm-btn" 
-            onClick={handleConfirm}
-            disabled={isLoading}
-          >
+          <button className="confirm-btn" onClick={handleConfirm} disabled={isLoading}>
             {isLoading ? "Adding..." : "Confirm"}
           </button>
-          <button className="cancel-btn" onClick={onClose}>
-            Cancel
-          </button>
+          <button className="cancel-btn" onClick={onClose}>Cancel</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

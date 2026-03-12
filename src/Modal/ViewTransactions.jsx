@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import "../ModalCSS/ViewTransactions.css";
 import { FaEdit, FaTrash, FaTimes, FaCheck } from "react-icons/fa";
 
@@ -20,25 +21,17 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
     setEditAmountDigits(value);
   };
 
-  const getMemberById = (memberId) => {
-    return wallet?.members?.find(m => m.id === memberId);
-  };
+  const getMemberById = (memberId) => wallet?.members?.find(m => m.id === memberId);
 
-  const getInitials = (name) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
+  const getInitials = (name) => name.split(' ').map(n => n[0]).join('').toUpperCase();
 
   const filteredTransactions = transactions
     .slice()
     .reverse()
-    .filter(t => {
-      if (filterMember !== "all" && t.paidBy !== filterMember) return false;
-      return true;
-    });
+    .filter(t => filterMember === "all" || t.paidBy === filterMember);
 
   const handleEditStart = (transaction) => {
     setEditingId(transaction._id);
-    // Convert existing amount to digits (e.g. 10.50 -> "1050")
     setEditAmountDigits(Math.round(transaction.amount * 100).toString());
     setEditForm({
       description: transaction.description,
@@ -54,20 +47,12 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            description: editForm.description,
-            amount: amount,
-            date: editForm.date
-          })
+          body: JSON.stringify({ description: editForm.description, amount, date: editForm.date })
         }
       );
-
       if (!response.ok) throw new Error('Failed to update transaction');
-
       const updated = await response.json();
-      onTransactionsChange(
-        transactions.map(t => t._id === transactionId ? updated : t)
-      );
+      onTransactionsChange(transactions.map(t => t._id === transactionId ? updated : t));
       setEditingId(null);
     } catch (err) {
       console.error("Error updating transaction:", err);
@@ -81,9 +66,7 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
         `http://localhost:5000/wallets/${wallet._id}/transactions/${transactionId}`,
         { method: 'DELETE' }
       );
-
       if (!response.ok) throw new Error('Failed to delete transaction');
-
       onTransactionsChange(transactions.filter(t => t._id !== transactionId));
       setDeletingId(null);
     } catch (err) {
@@ -94,28 +77,21 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
 
   if (!isOpen || !wallet) return null;
 
-  return (
+  return createPortal(
     <div className="transactionOverlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="transactionModal">
-        {/* Header */}
         <div className="transactionHeader">
           <div>
             <h2>Transactions</h2>
             <p className="transactionSubtitle">{wallet.title} · {transactions.length} total</p>
           </div>
-          <button className="transactionClose" onClick={onClose}>
-            <FaTimes />
-          </button>
+          <button className="transactionClose" onClick={onClose}><FaTimes /></button>
         </div>
 
-        {/* Member Filter */}
         <div className="transactionFilters">
           <div className="transactionFilterGroup">
             <label>Filter by Member</label>
-            <select
-              value={filterMember}
-              onChange={e => setFilterMember(e.target.value)}
-            >
+            <select value={filterMember} onChange={e => setFilterMember(e.target.value)}>
               <option value="all">All members</option>
               {wallet.members.map(m => (
                 <option key={m.id} value={m.id}>{m.name.split(' ')[0]}</option>
@@ -124,14 +100,12 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
           </div>
         </div>
 
-        {/* Results count */}
         {filterMember !== "all" && (
           <p className="transactionResultsCount">
             Showing {filteredTransactions.length} of {transactions.length} transactions
           </p>
         )}
 
-        {/* Transaction List */}
         <div className="transactionList">
           {filteredTransactions.length === 0 ? (
             <div className="transactionEmpty">No transactions found</div>
@@ -145,54 +119,46 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
                 <div key={transaction._id} className={`transactionItem ${isEditing ? 'transactionItem--editing' : ''}`}>
                   {isEditing ? (
                     <div className="transactionEditForm">
-                      <div  className="transactionEditRow">
+                      <div className="transactionEditRow">
                         <div className="transactionEditField">
                           <label>Description</label>
                           <input
                             value={editForm.description}
                             onChange={e => setEditForm({ ...editForm, description: e.target.value })}
                             placeholder="Description"
-                             style={{ width: "80%" }}
+                            style={{ width: "80%" }}
                           />
                         </div>
                         <div className="transactionEditField transactionEditFieldSm">
-                          <label style={{ marginLeft:"-50px" }}>Amount (£)</label>
+                          <label style={{ marginLeft: "-50px" }}>Amount (£)</label>
                           <input
                             value={formatEditAmount()}
                             onChange={handleEditAmountChange}
                             placeholder="0.00"
-                             style={{ marginLeft:"-45px" }}
+                            style={{ marginLeft: "-45px" }}
                           />
                         </div>
                         <div className="transactionEditField transactionEditFieldSm">
-                          <label style={{ marginLeft:"-30px" }}>Date</label>
+                          <label style={{ marginLeft: "-30px" }}>Date</label>
                           <input
                             type="date"
                             value={editForm.date}
                             onChange={e => setEditForm({ ...editForm, date: e.target.value })}
-                            style={{ marginLeft:"-30px" }}
+                            style={{ marginLeft: "-30px" }}
                           />
                         </div>
                       </div>
                       <div className="transactionEditActions">
-                        <button className="transactionBtnSave" onClick={() => handleEditSave(transaction._id)}>
-                          Save
-                        </button>
-                        <button className="transactionBtnCancel" onClick={() => setEditingId(null)}>
-                          Cancel
-                        </button>
+                        <button className="transactionBtnSave" onClick={() => handleEditSave(transaction._id)}>Save</button>
+                        <button className="transactionBtnCancel" onClick={() => setEditingId(null)}>Cancel</button>
                       </div>
                     </div>
                   ) : isDeleting ? (
                     <div className="transactionDeleteConfirm">
                       <p>{transaction.description} (£{transaction.amount.toFixed(2)})</p>
                       <div className="transactionEditActions">
-                        <button className="transactionBtnDeleteConfirm" onClick={() => handleDelete(transaction._id)}>
-                         Yes, delete
-                        </button>
-                        <button className="transactionBtnCancel" onClick={() => setDeletingId(null)}>
-                          Cancel
-                        </button>
+                        <button className="transactionBtnDeleteConfirm" onClick={() => handleDelete(transaction._id)}>Yes, delete</button>
+                        <button className="transactionBtnCancel" onClick={() => setDeletingId(null)}>Cancel</button>
                       </div>
                     </div>
                   ) : (
@@ -222,12 +188,8 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
                       <div className="transactionItemBtns">
                         {transaction.paidBy === currentUser?.id && (
                           <>
-                            <button className="transactionBtnEdit" onClick={() => handleEditStart(transaction)} title="Edit">
-                              <FaEdit />
-                            </button>
-                            <button className="transactionBtnDelete" onClick={() => setDeletingId(transaction._id)} title="Delete">
-                              <FaTrash />
-                            </button>
+                            <button className="transactionBtnEdit" onClick={() => handleEditStart(transaction)} title="Edit"><FaEdit /></button>
+                            <button className="transactionBtnDelete" onClick={() => setDeletingId(transaction._id)} title="Delete"><FaTrash /></button>
                           </>
                         )}
                       </div>
@@ -239,7 +201,6 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
           )}
         </div>
 
-        {/* Footer total */}
         <div className="transactionFooter">
           <span>{filterMember !== "all" ? "Filtered total" : "Total paid"}</span>
           <span className="transactionFooterAmount">
@@ -247,7 +208,8 @@ const ViewTransactions = ({ isOpen, onClose, wallet, transactions, onTransaction
           </span>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

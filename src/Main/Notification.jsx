@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { FaUserPlus, FaUserCheck, FaWallet, FaThumbsUp, FaThumbsDown, FaComment, FaTrash } from "react-icons/fa";
+import { FaUserPlus, FaUserCheck, FaWallet, FaThumbsUp, FaThumbsDown, FaComment, FaTrash, FaExclamationTriangle, FaPoundSign, FaBell } from "react-icons/fa";
 import "../css/Notification.css";
 import Navbar from "../Navbar/Navbar";
 
 const typeConfig = {
-  alert:              { icon: "⚠️",                  label: "Alert",       bg: "#2a1a3e", color: "#f87171" },
-  transaction:        { icon: "💸",                  label: "Transaction",  bg: "#1a1535", color: "#a78bfa" },
-  reminder:           { icon: "🔔",                  label: "Reminder",     bg: "#1e1542", color: "#c4b5fd" },
-  friend_request:     { icon: "react:FaUserPlus",    label: "Friend",       bg: "#1e1542", color: "#9b7fd4" },
-  friend_accepted:    { icon: "react:FaUserCheck",   label: "Friend",       bg: "#1e1542", color: "#9b7fd4" },
-  wallet_transaction: { icon: "react:FaWallet",      label: "Wallet",       bg: "#1a1535", color: "#d8b4fe" },
-  wallet_added:       { icon: "react:FaWallet",      label: "Wallet",       bg: "#1a1535", color: "#d8b4fe" },
-  community_like:     { icon: "react:FaThumbsUp",    label: "Community",    bg: "#1a1535", color: "#a78bfa" },
-  community_dislike:  { icon: "react:FaThumbsDown",  label: "Community",    bg: "#2a1a3e", color: "#f87171" },
-  community_comment:  { icon: "react:FaComment",     label: "Community",    bg: "#1e1542", color: "#c4b5fd" },
+  alert:              { icon: "react:FaExclamationTriangle", label: "Alert",       bg: "#2a1a3e", color: "#f87171" },
+  transaction:        { icon: "react:FaPoundSign",           label: "Transaction",  bg: "#1a1535", color: "#a78bfa" },
+  reminder:           { icon: "react:FaBell",                label: "Reminder",     bg: "#1e1542", color: "#c4b5fd" },
+  friend_request:     { icon: "react:FaUserPlus",            label: "Friend",       bg: "#1e1542", color: "#9b7fd4" },
+  friend_accepted:    { icon: "react:FaUserCheck",           label: "Friend",       bg: "#1e1542", color: "#9b7fd4" },
+  wallet_transaction: { icon: "react:FaWallet",              label: "Wallet",       bg: "#1a1535", color: "#d8b4fe" },
+  wallet_added:       { icon: "react:FaWallet",              label: "Wallet",       bg: "#1a1535", color: "#d8b4fe" },
+  community_like:     { icon: "react:FaThumbsUp",            label: "Community",    bg: "#1a1535", color: "#a78bfa" },
+  community_dislike:  { icon: "react:FaThumbsDown",          label: "Community",    bg: "#2a1a3e", color: "#f87171" },
+  community_comment:  { icon: "react:FaComment",             label: "Community",    bg: "#1e1542", color: "#c4b5fd" },
 };
 
 const renderIcon = (icon, color) => {
-  if (icon === "react:FaUserPlus")   return <FaUserPlus size={16} color={color} />;
-  if (icon === "react:FaUserCheck")  return <FaUserCheck size={16} color={color} />;
-  if (icon === "react:FaWallet")     return <FaWallet size={16} color={color} />;
-  if (icon === "react:FaThumbsUp")   return <FaThumbsUp size={16} color={color} />;
-  if (icon === "react:FaThumbsDown") return <FaThumbsDown size={16} color={color} />;
-  if (icon === "react:FaComment")    return <FaComment size={16} color={color} />;
-  return icon;
+  if (icon === "react:FaExclamationTriangle") return <FaExclamationTriangle size={16} color={color} />;
+  if (icon === "react:FaPoundSign")           return <FaPoundSign size={16} color={color} />;
+  if (icon === "react:FaBell")                return <FaBell size={16} color={color} />;
+  if (icon === "react:FaUserPlus")            return <FaUserPlus size={16} color={color} />;
+  if (icon === "react:FaUserCheck")           return <FaUserCheck size={16} color={color} />;
+  if (icon === "react:FaWallet")              return <FaWallet size={16} color={color} />;
+  if (icon === "react:FaThumbsUp")            return <FaThumbsUp size={16} color={color} />;
+  if (icon === "react:FaThumbsDown")          return <FaThumbsDown size={16} color={color} />;
+  if (icon === "react:FaComment")             return <FaComment size={16} color={color} />;
+  return null;
 };
 
 const FILTERS = ["All", "Unread", "Transactions", "Reminders", "Friends", "Wallet", "Community"];
@@ -319,18 +322,42 @@ const Notification = () => {
   return (
     <>
       <style>{`
-        html, body, #root {
-          margin: 0; padding: 0;
-          font-family: 'Poppins', sans-serif;
-          background: linear-gradient(100deg, #111827, #0F0F1A);
-          color: white; width: 100%; min-height: 100%; overflow-x: hidden;
-        }
-        body::after {
-          content: ''; position: fixed; top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: linear-gradient(100deg, #111827, #0F0F1A); z-index: -1;
-        }
-      `}</style>
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+  body:not([data-theme="light"]), body[data-theme="dark"] {
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+  }
+  body:not([data-theme="light"])::after, body[data-theme="dark"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+    z-index: -1;
+  }
+  body[data-theme="light"] {
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+  }
+  body[data-theme="light"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+    z-index: -1;
+  }
+`}</style>
       <Navbar />
 
       <div className="notif-page">

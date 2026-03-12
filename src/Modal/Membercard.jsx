@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import "../ModalCSS/Membercard.css";
 import { FaUserPlus, FaUserCheck, FaUserMinus, FaCopy, FaCheck, FaCrown, FaUserFriends, FaTrash, FaRedo, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
@@ -12,7 +13,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
   const [sharedWallets, setSharedWallets] = useState(0);
   const [loadingData, setLoadingData] = useState(true);
 
-  // Owner controls
   const [showOwnerControls, setShowOwnerControls] = useState(false);
   const [friends, setFriends] = useState([]);
   const [addMemberSearch, setAddMemberSearch] = useState("");
@@ -41,7 +41,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
       const sentIds = userData.sentRequests?.map((f) => f.toString()) || [];
       setRequestSent(sentIds.includes(member.id));
 
-      // Load friends list for owner add-member feature
       if (isOwner && isCurrentUser && friendIds.length > 0) {
         const res = await fetch(`http://localhost:5000/users-by-ids`, {
           method: "POST",
@@ -49,12 +48,10 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
           body: JSON.stringify({ ids: friendIds }),
         });
         const data = await res.json();
-        // Filter out people already in the wallet
         const walletMemberIds = wallet.members.map((m) => m.id);
         setFriends((data.users || []).filter((u) => !walletMemberIds.includes(u._id.toString())));
       }
 
-      // Fetch latest wallet data to get saved schedule
       if (isOwner && isCurrentUser) {
         try {
           const walletRes = await fetch(`http://localhost:5000/wallet/${wallet._id}`);
@@ -97,7 +94,7 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
     }
     setFriendLoading(false);
   };
-//remove memeber(owner)
+
   const handleKick = async () => {
     if (!window.confirm(`Remove ${member.name} from this wallet?`)) return;
     try {
@@ -119,7 +116,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
     }
   };
 
-  // Owner: add a friend to the wallet
   const handleAddMember = async (friend) => {
     setAddingMember(friend._id);
     try {
@@ -146,7 +142,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
     setAddingMember(null);
   };
 
-  // Owner: reset all transactions
   const handleResetTransactions = async () => {
     if (!window.confirm("Reset all transactions for this wallet? This cannot be undone.")) return;
     try {
@@ -166,7 +161,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
     }
   };
 
-  // Owner: save recurring reset schedule
   const handleSaveSchedule = async () => {
     setSavingSchedule(true);
     try {
@@ -194,7 +188,7 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
     `${f.name} ${f.surname}`.toLowerCase().includes(addMemberSearch.toLowerCase())
   );
 
-  return (
+  return createPortal(
     <div className="memberCardOverlay" onClick={onClose}>
       <div className="memberCardModal" onClick={(e) => e.stopPropagation()}>
         <button className="memberCardClose" onClick={onClose}>×</button>
@@ -204,7 +198,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
         </p>
 
         <div className="memberCardBody">
-          {/* Avatar */}
           <div className="memberCardAvatar">
             {isUrl(member.avatar) ? (
               <img src={member.avatar} alt={initials} />
@@ -213,7 +206,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
             )}
           </div>
 
-          {/* Info */}
           <div className="memberCardInfo">
             <h2 className="memberCardName">
               {member.name}
@@ -228,7 +220,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
               </p>
             )}
 
-            {/* ID row */}
             <div className="memberCardIdRow">
               <span className="memberCardIdLabel">ID:</span>
               <span className="memberCardId">{member.id}</span>
@@ -238,7 +229,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
               </button>
             </div>
 
-            {/* Actions for other members */}
             {!isCurrentUser && (
               <div className="memberCardActions">
                 {isFriend ? (
@@ -267,19 +257,13 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
               </div>
             )}
 
-            {isCurrentUser && (
-              <p className="memberCardYouBadge">This is you</p>
-            )}
+            {isCurrentUser && <p className="memberCardYouBadge">This is you</p>}
           </div>
         </div>
 
-        {/* Owner Controls - only shown when owner views their own card */}
         {isOwner && isCurrentUser && (
           <div className="memberCardOwnerSection">
-            <button
-              className="memberCardOwnerToggle"
-              onClick={() => setShowOwnerControls((v) => !v)}
-            >
+            <button className="memberCardOwnerToggle" onClick={() => setShowOwnerControls((v) => !v)}>
               <FaCrown size={12} style={{ color: "#b94aff" }} />
               Owner Controls
               {showOwnerControls ? <FaChevronUp size={11} /> : <FaChevronDown size={11} />}
@@ -287,8 +271,6 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
 
             {showOwnerControls && (
               <div className="memberCardOwnerControls">
-
-                {/* Add Members */}
                 <div className="ownerControlBlock">
                   <p className="ownerControlLabel"><FaUserFriends size={13} /> Add Members</p>
                   <input
@@ -310,11 +292,7 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
                                 {isUrl(f.avatar) ? <img src={f.avatar} alt={fi} /> : fi}
                               </div>
                               <span className="ownerFriendName">{f.name} {f.surname}</span>
-                              <button
-                                className="ownerAddBtn"
-                                onClick={() => handleAddMember(f)}
-                                disabled={addingMember === f._id}
-                              >
+                              <button className="ownerAddBtn" onClick={() => handleAddMember(f)} disabled={addingMember === f._id}>
                                 {addingMember === f._id ? "Adding..." : "+ Add"}
                               </button>
                             </div>
@@ -327,47 +305,35 @@ export default function MemberCard({ member, wallet, currentUser, onClose, onKic
 
                 <div className="ownerControlDivider" />
 
-                {/* Reset Transactions */}
                 <div className="ownerControlBlock">
                   <p className="ownerControlLabel"><FaTrash size={12} /> Reset Transactions</p>
                   <p className="ownerControlSub">Permanently deletes all transactions in this wallet.</p>
-                  <button className="ownerResetBtn" onClick={handleResetTransactions}>
-                    Reset now
-                  </button>
+                  <button className="ownerResetBtn" onClick={handleResetTransactions}>Reset now</button>
                 </div>
 
                 <div className="ownerControlDivider" />
 
-                {/* Recurring Reset Schedule */}
                 <div className="ownerControlBlock">
                   <p className="ownerControlLabel"><FaRedo size={12} /> Auto Reset Schedule</p>
                   <p className="ownerControlSub">Transactions will reset automatically on this schedule.</p>
                   <div className="ownerScheduleRow">
-                    <select
-                      className="ownerScheduleSelect"
-                      value={resetSchedule}
-                      onChange={(e) => setResetSchedule(e.target.value)}
-                    >
+                    <select className="ownerScheduleSelect" value={resetSchedule} onChange={(e) => setResetSchedule(e.target.value)}>
                       <option value="none">No auto reset</option>
                       <option value="weekly">Every week</option>
                       <option value="monthly">Every month</option>
                       <option value="yearly">Every year</option>
                     </select>
-                    <button
-                      className="ownerSaveBtn"
-                      onClick={handleSaveSchedule}
-                      disabled={savingSchedule}
-                    >
+                    <button className="ownerSaveBtn" onClick={handleSaveSchedule} disabled={savingSchedule}>
                       {scheduleSuccess ? <><FaCheck size={11} /> Saved!</> : savingSchedule ? "Saving..." : "Save"}
                     </button>
                   </div>
                 </div>
-
               </div>
             )}
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

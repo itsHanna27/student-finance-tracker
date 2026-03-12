@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import "../css/Community.css";
+import "../css/tags.css";
 import Navbar from "../Navbar/Navbar";
 import Bestie from "../Modal/bestie";
 import useFinanceData from "../hooks/FinanceData";
 
 const API = "http://localhost:5000";
+const MAX_HASHTAGS = 3;
 
 const isUrl = (str) => typeof str === "string" && str.startsWith("http");
 
@@ -98,7 +100,7 @@ function CommentSection({ postId, comments: initialComments, userId }) {
   );
 }
 
-function Card({ post, userId, onDelete }) {
+function Card({ post, userId, onDelete, onHashtagClick }) {
   const [likes, setLikes] = useState(post.likes?.length ?? 0);
   const [dislikes, setDislikes] = useState(post.dislikes?.length ?? 0);
   const [voted, setVoted] = useState(
@@ -154,7 +156,7 @@ function Card({ post, userId, onDelete }) {
 
   return (
     <div className="card">
-      {/* Header — no delete button here */}
+      {/* Header */}
       <div className="card-header">
         <Avatar2 name={post.name} avatar={post.avatar} />
         <span className="card-name">{post.name}</span>
@@ -162,6 +164,21 @@ function Card({ post, userId, onDelete }) {
 
       <p className="card-title">{post.title}</p>
       <p className="card-text">"{post.text}"</p>
+
+      {/* Hashtags below post text */}
+      {post.hashtags?.length > 0 && (
+        <div className="card-hashtags">
+          {post.hashtags.map((tag, i) => (
+            <span
+              key={i}
+              className="card-hashtag"
+              onClick={(e) => { e.stopPropagation(); onHashtagClick(tag); }}
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="card-actions">
         <div className="vote-group">
@@ -196,6 +213,9 @@ function Card({ post, userId, onDelete }) {
 
 export default function CommunityPage() {
   const [titleInput, setTitleInput] = useState("");
+  const [hashtagInput, setHashtagInput] = useState("");
+  const [hashtags, setHashtags] = useState([]);
+  const [activeHashtagFilter, setActiveHashtagFilter] = useState(null);
   const [input, setInput] = useState("");
   const [allPosts, setAllPosts] = useState([]);
   const [search, setSearch] = useState("");
@@ -234,18 +254,47 @@ export default function CommunityPage() {
     fetchFriends();
   }, [userId]);
 
+  //  Hashtag handlers
+  const handleHashtagChange = (e) => {
+    let val = e.target.value;
+    if (val && !val.startsWith("#")) val = "#" + val;
+    setHashtagInput(val);
+  };
+
+  const handleHashtagKeyDown = (e) => {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      const cleaned = hashtagInput.replace(/#/g, "").trim().toLowerCase();
+      if (!cleaned || hashtags.includes(cleaned) || hashtags.length >= MAX_HASHTAGS) {
+        setHashtagInput("");
+        return;
+      }
+      setHashtags((prev) => [...prev, cleaned]);
+      setHashtagInput("");
+    }
+  };
+
+  const removeHashtag = (tag) => setHashtags((prev) => prev.filter((t) => t !== tag));
+
+  const handleHashtagClick = (tag) => {
+    setActiveHashtagFilter((prev) => (prev === tag ? null : tag));
+  };
+
+  //  Filtering 
   const tabFiltered = allPosts.filter((p) => {
     if (activeTab === "mine") return p.userId?.toString() === userId?.toString();
     if (activeTab === "friends") return friendIds.includes(p.userId?.toString());
     return true;
   });
 
-  const filtered = tabFiltered.filter(
-    (p) =>
+  const filtered = tabFiltered.filter((p) => {
+    const matchesSearch =
       p.text?.toLowerCase().includes(search.toLowerCase()) ||
       p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.title?.toLowerCase().includes(search.toLowerCase())
-  );
+      p.title?.toLowerCase().includes(search.toLowerCase());
+    const matchesHashtag = activeHashtagFilter ? p.hashtags?.includes(activeHashtagFilter) : true;
+    return matchesSearch && matchesHashtag;
+  });
 
   const handlePost = async () => {
     if (!input.trim() || !titleInput.trim() || !userId) return;
@@ -254,12 +303,14 @@ export default function CommunityPage() {
       const res = await fetch(`${API}/api/posts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, title: titleInput.trim(), text: input.trim() }),
+        body: JSON.stringify({ userId, title: titleInput.trim(), text: input.trim(), hashtags }),
       });
       const newPost = await res.json();
       setAllPosts((prev) => [newPost, ...prev]);
       setTitleInput("");
       setInput("");
+      setHashtags([]);
+      setHashtagInput("");
     } catch (err) {
       console.error("Post error:", err);
     }
@@ -273,27 +324,42 @@ export default function CommunityPage() {
   return (
     <>
       <style>{`
-        html, body, #root {
-          margin: 0;
-          padding: 0;
-          font-family: 'Poppins', sans-serif;
-          background: linear-gradient(100deg, #111827, #0F0F1A);
-          color: white;
-          width: 100%;
-          min-height: 100%;
-          overflow-x: hidden;
-        }
-        body::after {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(100deg, #111827, #0F0F1A);
-          z-index: -1;
-        }
-      `}</style>
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+  body:not([data-theme="light"]), body[data-theme="dark"] {
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+  }
+  body:not([data-theme="light"])::after, body[data-theme="dark"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #111827, #0F0F1A);
+    z-index: -1;
+  }
+  body[data-theme="light"] {
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+  }
+  body[data-theme="light"]::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, #f0f0ff, #e8e8ff);
+    z-index: -1;
+  }
+`}</style>
       <Navbar />
       <Bestie
         balance={balance}
@@ -306,18 +372,20 @@ export default function CommunityPage() {
         <div className="community-header">
           <h1 className="community-title">Community Page</h1>
           <p className="community-subtitle">
-            Explore how students like you budget, save, and stay on top of uni life and share your own advice, stories, and money-saving hacks.</p>
+            Explore how students like you budget, save, and stay on top of uni life and share your own advice, stories, and money-saving hacks.
+          </p>
         </div>
 
         <div className="community-container">
-          <div className="search-wrapper">
-            <input
-              className="search-input"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search posts by title, name, or content..."
-            />
-          </div>
+          
+
+          {/* Active hashtag filter banner */}
+          {activeHashtagFilter && (
+            <div className="active-hashtag-filter">
+              Filtering by <span className="active-hashtag-pill">#{activeHashtagFilter}</span>
+              <button className="clear-hashtag-filter" onClick={() => setActiveHashtagFilter(null)}>✕ Clear</button>
+            </div>
+          )}
 
           <p className="compose-label">Ask or share a tip</p>
           <div className="compose-box">
@@ -335,10 +403,41 @@ export default function CommunityPage() {
               rows={3}
             />
             <div className="compose-footer">
+              <div className="compose-footer-left">
+                {hashtags.length < MAX_HASHTAGS ? (
+                  <input
+                    className="compose-hashtags-input"
+                    value={hashtagInput}
+                    onChange={handleHashtagChange}
+                    onKeyDown={handleHashtagKeyDown}
+                    placeholder={`Add hashtag (${hashtags.length}/${MAX_HASHTAGS}) — press space or enter`}
+                  />
+                ) : (
+                  <p className="hashtag-limit-msg">Max {MAX_HASHTAGS} hashtags reached</p>
+                )}
+                {hashtags.length > 0 && (
+                  <div className="hashtag-pills">
+                    {hashtags.map((tag, i) => (
+                      <span key={i} className="hashtag-pill">
+                        #{tag}
+                        <button className="hashtag-pill-remove" onClick={() => removeHashtag(tag)}>✕</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button className="post-btn" onClick={handlePost} disabled={posting}>
                 {posting ? "Posting..." : "Post"}
               </button>
             </div>
+          </div>
+          <div className="search-wrapper">
+            <input
+              className="search-input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search posts by title, name, or content..."
+            />
           </div>
 
           {loadingPosts ? (
@@ -352,11 +451,11 @@ export default function CommunityPage() {
               </div>
               <div className="posts-grid">
                 {filtered.map((post) => (
-                  <Card key={post._id} post={post} userId={userId} onDelete={handleDelete} />
+                  <Card key={post._id} post={post} userId={userId} onDelete={handleDelete} onHashtagClick={handleHashtagClick} />
                 ))}
                 {filtered.length === 0 && (
                   <div className="no-results">
-                    No posts found{search ? ` matching "${search}"` : " in this tab"}
+                    No posts found{search ? ` matching "${search}"` : activeHashtagFilter ? ` with #${activeHashtagFilter}` : " in this tab"}
                   </div>
                 )}
               </div>

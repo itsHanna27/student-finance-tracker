@@ -1,6 +1,7 @@
 import "../ModalCSS/Wallet.css";
 import "../ModalCSS/Chat.css";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { FaComments, FaArrowLeft, FaPaperPlane } from "react-icons/fa";
 import ViewTransactions from "./ViewTransactions";
 import MemberCard from "./Membercard";
@@ -16,8 +17,7 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
   const [isViewTransactionsOpen, setIsViewTransactionsOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
 
-  // Chat state
-  const [view, setView] = useState("wallet"); // "wallet" | "chat"
+  const [view, setView] = useState("wallet");
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -30,15 +30,14 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
   }, []);
 
   useEffect(() => {
-  const storedUser = JSON.parse(localStorage.getItem("user"));
-  console.log("currentUser:", storedUser); 
-  if (storedUser) setCurrentUser(storedUser);
-}, []);
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) setCurrentUser(storedUser);
+  }, []);
+
   useEffect(() => {
     if (isOpen && wallet?._id) fetchTransactions();
   }, [isOpen, wallet]);
 
-  // Start/stop polling when chat view is active
   useEffect(() => {
     if (view === "chat" && wallet?._id) {
       fetchMessages();
@@ -51,7 +50,6 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
     };
   }, [view, wallet?._id]);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     if (view === "chat") {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -87,9 +85,7 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
   const handleSendMessage = async () => {
     const trimmed = inputText.trim();
     if (!trimmed || !currentUser?.id) return;
-
     const member = wallet?.members?.find(m => m.id === currentUser.id);
-
     const message = {
       walletId: wallet._id,
       senderId: currentUser.id,
@@ -98,7 +94,6 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
       senderColor: member?.color || "#7c6b9e",
       text: trimmed,
     };
-
     setIsSending(true);
     try {
       const response = await fetch(`http://localhost:5000/wallets/${wallet._id}/messages`, {
@@ -118,10 +113,7 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }
   };
 
   const calculateTotals = (txns) => {
@@ -151,44 +143,38 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
   };
 
   const handleLeaveWallet = async () => {
-  if (!currentUser?.id) { alert("User not logged in"); return; }
-  const confirmLeave = window.confirm(
-    wallet.members.length === 1
-      ? "You are the last member. Leaving will delete this wallet. Are you sure?"
-      : "Are you sure you want to leave this wallet?"
-  );
-  if (!confirmLeave) return;
+    if (!currentUser?.id) { alert("User not logged in"); return; }
+    const confirmLeave = window.confirm(
+      wallet.members.length === 1
+        ? "You are the last member. Leaving will delete this wallet. Are you sure?"
+        : "Are you sure you want to leave this wallet?"
+    );
+    if (!confirmLeave) return;
+    try {
+      await fetch(`http://localhost:5000/wallets/${wallet._id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletId: wallet._id, senderId: "system", senderName: "system",
+          text: `${currentUser.name} has left the wallet`, type: "system",
+        }),
+      });
+      const response = await fetch(`http://localhost:5000/wallet/${wallet._id}/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id })
+      });
+      if (!response.ok) throw new Error('Failed to leave wallet');
+      const result = await response.json();
+      if (result.deleted) alert("Wallet has been deleted as you were the last member.");
+      else alert("You have left the wallet.");
+      onClose();
+    } catch (err) {
+      console.error("Error leaving wallet:", err);
+      alert("Failed to leave wallet");
+    }
+  };
 
-  try {
-    // notifies wallet when user leaves1
-    await fetch(`http://localhost:5000/wallets/${wallet._id}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        walletId: wallet._id,
-        senderId: "system",
-        senderName: "system",
-        text: `${currentUser.name} has left the wallet`,
-        type: "system",
-      }),
-    });
-
-    // Then leave the wallet
-    const response = await fetch(`http://localhost:5000/wallet/${wallet._id}/leave`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: currentUser.id })
-    });
-    if (!response.ok) throw new Error('Failed to leave wallet');
-    const result = await response.json();
-    if (result.deleted) alert("Wallet has been deleted as you were the last member.");
-    else alert("You have left the wallet.");
-    onClose();
-  } catch (err) {
-    console.error("Error leaving wallet:", err);
-    alert("Failed to leave wallet");
-  }
-};
   if (!isOpen || !wallet) return null;
 
   const getInitials = (name) => name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -263,15 +249,12 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
 
   const memberBalances = calculateMemberBalances();
 
-  return (
+  return createPortal(
     <>
       <div className="wallet-overlay">
         <div className="wallet-modal wallet-modal-clipped">
 
-          {/* wallet*/}
           <div className={`wallet-panel ${view === "wallet" ? "panel-active" : "panel-slide-left"}`}>
-
-            {/* Header */}
             <div className="wallet-header">
               <div>
                 <h2>{wallet.title}</h2>
@@ -285,7 +268,6 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
               </div>
             </div>
 
-            {/* Avatars */}
             <div className="wallet-avatars">
               {wallet.members.map((member, idx) => (
                 <div key={idx} className="wallet-avatar" style={{ backgroundColor: member.color, cursor: "pointer" }} title={`View ${member.name}`} onClick={() => setSelectedMember(member)}>
@@ -294,7 +276,6 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
               ))}
             </div>
 
-            {/* Totals */}
             <div className="wallet-stats">
               <p>{isManualSplit ? "Budget:" : "Total Bill:"} <span>{budgetAmount}</span></p>
               <p>Total Paid: <span>£{totalSpent.toFixed(2)}</span></p>
@@ -306,12 +287,10 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
               </p>
             </div>
 
-            {/* Progress bar */}
             <div className="wallet-progress">
               <div className="wallet-progress-fill" style={{ width: `${calculateProgress()}%` }} />
             </div>
 
-            {/* Equal Split Info */}
             {wallet.splitType === "equal" && (
               <div className="wallet-split-info">
                 <h3>Payment Status</h3>
@@ -346,7 +325,6 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
               </div>
             )}
 
-            {/* Recent Payments */}
             <div className="wallet-section">
               <div className="wallet-section-header">
                 <h3>Recent Payments</h3>
@@ -374,7 +352,6 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
               </div>
             </div>
 
-            {/* Add Payment */}
             <div className="wallet-section">
               <h3>Add Payment</h3>
               <div className="wallet-inputs">
@@ -384,20 +361,15 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
               </div>
               <div className="wallet-add">
                 <button className="add-payment" onClick={handleAddPayment}>+ Add payment</button>
-                <button className="chat-btn" onClick={() => setView("chat")}>
-                  <FaComments />
-                </button>
+                <button className="chat-btn" onClick={() => setView("chat")}><FaComments /></button>
               </div>
             </div>
           </div>
 
-          {/* chat */}
           <div className={`wallet-panel chat-panel ${view === "chat" ? "panel-active" : "panel-slide-right"}`}>
-
-            {/* Chat Header */}
             <div className="wallet-header">
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <button style={{position:"relative",bottom:"30px"}} className="chat-back-btn" onClick={() => setView("wallet")}>
+                <button style={{ position: "relative", bottom: "30px" }} className="chat-back-btn" onClick={() => setView("wallet")}>
                   <FaArrowLeft />
                 </button>
                 <div>
@@ -410,20 +382,15 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
               </div>
             </div>
 
-            {/* Messages */}
             <div className="chat-messages-area">
               {messages.length === 0 ? (
-                <div className="chat-empty-state">
-                  <p>No messages yet. Say something!</p>
-                </div>
+                <div className="chat-empty-state"><p>No messages yet. Say something!</p></div>
               ) : (
                 Object.entries(groupedMessages).map(([dateKey, msgs]) => (
                   <div key={dateKey}>
-                    <div className="chat-date-divider">
-                      <span>{formatDateDivider(msgs[0].createdAt)}</span>
-                    </div>
+                    <div className="chat-date-divider"><span>{formatDateDivider(msgs[0].createdAt)}</span></div>
                     {msgs.map((msg, idx) => {
-                       if (msg.type === "system") {
+                      if (msg.type === "system") {
                         return (
                           <div key={msg._id || idx} className="chat-system-message">
                             <span>{msg.text}</span>
@@ -460,7 +427,6 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Chat Input */}
             <div className="chat-input-row">
               <input
                 className="chat-text-input"
@@ -471,15 +437,13 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
                 disabled={isSending}
               />
               <button className="chat-send-btn" onClick={handleSendMessage} disabled={isSending || !inputText.trim()}>
-                 <FaPaperPlane />
+                <FaPaperPlane />
               </button>
             </div>
           </div>
-
         </div>
       </div>
 
-      {/* View Transactions Modal */}
       <ViewTransactions
         isOpen={isViewTransactionsOpen}
         onClose={() => setIsViewTransactionsOpen(false)}
@@ -489,7 +453,6 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
         currentUser={currentUser}
       />
 
-      {/* Member Card Modal */}
       {selectedMember && (
         <MemberCard
           member={selectedMember}
@@ -500,7 +463,8 @@ const Wallet = ({ isOpen, wallet, onClose }) => {
           onWalletUpdated={() => setSelectedMember(null)}
         />
       )}
-    </>
+    </>,
+    document.body
   );
 };
 

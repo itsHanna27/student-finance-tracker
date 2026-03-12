@@ -1,0 +1,126 @@
+body[data-theme="light"] #root {
+  filter: invert(1) hue-rotate(180deg);
+  min-height: 100vh;
+}
+
+body[data-theme="light"] #root img,
+body[data-theme="light"] #root .avatar2 img,
+body[data-theme="light"] #root .avatar-nav-img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body[data-theme="light"] #root .chart-tag,
+body[data-theme="light"] #root .goal-tag {
+  color: white;
+}
+
+body[data-theme="light"] #root h1,
+body[data-theme="light"] #root h2,
+body[data-theme="light"] #root h3 {
+  color: rgb(255, 255, 255) !important;
+}
+
+body[data-theme="light"] #root .pie-card .recharts-wrapper {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+body[data-theme="light"] .modal-overlay {
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] .congrats-overlay {
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] .wallet-overlay {
+  filter: invert(1) hue-rotate(180deg);
+}body[data-theme="light"] .wallet-overlay img {
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] .memberCardOverlay {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body[data-theme="light"] .memberCardOverlay img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body[data-theme="light"] .transactionOverlay {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body[data-theme="light"] .transactionOverlay img {
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] .wallet-modal-overlay {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body[data-theme="light"] .wallet-modal-overlay img {
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] #root .avatar-nav-img {
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] #root input[type="checkbox"] {
+  accent-color: #7c3aed;
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] #root #updateAllCopies {
+  accent-color: #7c3aed !important;
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+body[data-theme="light"] #root input[type="checkbox"] {
+  filter: invert(1) hue-rotate(180deg) !important;
+  accent-color: #7c3aed !important;
+}
+body[data-theme="light"] .modal-overlay select {
+  border: 1px solid #ccc !important;
+}
+
+body[data-theme="light"] .modal-overlay option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+body[data-theme="light"] .modal-overlay input[type="date"] {
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+body[data-theme="light"] .filter-modal input[type="date"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+body[data-theme="light"] #root .account-page {
+  background: transparent;
+}
+body[data-theme="light"] .bestie-chat-window {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body[data-theme="light"] .bestie-chat-window img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body[data-theme="light"] .bestie-float-btn {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+body[data-theme="light"] .bestie-float-btn img {
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] .bestie-chat-window .message-bubble {
+  filter: invert(1) hue-rotate(180deg);
+}
+body[data-theme="light"] .bestie-chat-window .user-message .message-bubble {
+  background: #c97dff !important;
+  color: white !important;
+}
+
+
+body[data-theme="light"] #root .navbar-logo {
+  color: #a36eec !important;
+  filter: none !important;
+}

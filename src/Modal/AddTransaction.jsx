@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import "../ModalCSS/AddTransaction.css";
 
 const SF_KEY = "unibudget_student_finance";
@@ -136,7 +137,6 @@ const AddTransaction = ({ onClose, onAddTransaction, onBalanceUpdate, setTransac
     return true;
   };
 
-
   const createMissedCopies = async (savedTransaction) => {
     if (!["house", "subscription"].includes(savedTransaction.type)) return;
     if (!savedTransaction.frequency) return;
@@ -184,7 +184,6 @@ const AddTransaction = ({ onClose, onAddTransaction, onBalanceUpdate, setTransac
       }
     }
 
-    // Update lastProcessed on original
     if (copies.length > 0) {
       try {
         await fetch(`http://localhost:5000/transactions/${savedTransaction._id}`, {
@@ -193,7 +192,6 @@ const AddTransaction = ({ onClose, onAddTransaction, onBalanceUpdate, setTransac
           body: JSON.stringify({ lastProcessed: now }),
         });
       } catch {}
-      console.log(`Created ${copies.length} missed copy/copies for ${savedTransaction.category}`);
       if (onBalanceUpdate) onBalanceUpdate();
     }
   };
@@ -276,7 +274,7 @@ const AddTransaction = ({ onClose, onAddTransaction, onBalanceUpdate, setTransac
 
   const isRecurring = type === "subscription" || type === "house";
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">{modalTitle}</h2>
@@ -396,7 +394,8 @@ const AddTransaction = ({ onClose, onAddTransaction, onBalanceUpdate, setTransac
           <button className="cancel-btn" onClick={onClose}>Cancel</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

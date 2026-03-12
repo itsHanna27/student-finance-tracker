@@ -1,4 +1,4 @@
-/* ───── Page ───── */
+
 .community-page {
   padding: 2rem;
 }
@@ -9,7 +9,6 @@
   margin-top: 2rem;
 }
 
-/* ───── Header ───── */
 .community-header {
   text-align: center;
   margin-bottom: 36px;
@@ -30,13 +29,11 @@
   line-height: 1.6;
 }
 
-/* ───── Container ───── */
 .community-container {
   max-width: 960px;
   margin: 0 auto;
 }
 
-/* ───── Search ───── */
 .search-wrapper {
   position: relative;
   margin-bottom: 28px;
@@ -63,7 +60,7 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
-/* ───── Compose ───── */
+
 .compose-box {
   background: #01041E;
   border: 1px solid #A78BFA;
@@ -91,6 +88,20 @@
   outline: none;
   font-family: 'Poppins', sans-serif;
   margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.compose-hashtags-input {
+   width: 75%;
+  box-sizing: border-box;
+  background: #01041E;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 5px;
   transition: border-color 0.2s;
 }
 
@@ -124,17 +135,20 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 10px;
+  gap:50%;
 }
 
 .post-btn {
   background: #A78BFA;
   border: 1px solid white;
   border-radius: 10px;
-  padding: 5px 25px;
+  padding: 0px 25px;
   color: #fff;
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
+  height: 40px;
+  margin-top: 3px;
 }
 .send-btn {
   background: #A78BFA;
@@ -353,7 +367,7 @@
   opacity: 1;
 }
 
-/* ───── Avatar ───── */
+
 .avatar2 {
   width: 38px;
   height: 38px;
@@ -378,7 +392,7 @@
   border-radius: 50%;
 }
 
-/* ───── Comments ───── */
+
 .comment-section {
   margin-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);

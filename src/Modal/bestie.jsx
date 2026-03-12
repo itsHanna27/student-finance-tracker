@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import "../ModalCSS/bestie.css";
 
 const STORAGE_KEY = "bestie_messages";
@@ -9,7 +10,6 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
   const [isOpen, setIsOpen] = useState(false);
   const [userName, setUserName] = useState("");
 
-  // Load messages from localStorage on mount
   const [messages, setMessages] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -30,7 +30,6 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Save messages to localStorage whenever they change
   useEffect(() => {
     try {
       const toStore = messages.slice(-MAX_STORED_MESSAGES);
@@ -288,7 +287,6 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
 
   const callGroqAPI = async (userMessage) => {
     try {
-      // Send last 4 messages as conversation history for context
       const history = messages
         .slice(-HISTORY_TO_SEND)
         .map(m => ({ role: m.sender === "user" ? "user" : "assistant", content: m.text }));
@@ -327,29 +325,18 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
-
-    const userMessage = {
-      id: Date.now(),
-      sender: "user",
-      text: inputValue,
-      timestamp: new Date(),
-    };
-
+    const userMessage = { id: Date.now(), sender: "user", text: inputValue, timestamp: new Date() };
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = inputValue;
     setInputValue("");
     setIsTyping(true);
-
     const smartResponse = generateResponse(currentInput);
-
     if (smartResponse) {
-      console.log("Using smart response - no API call needed!");
       setTimeout(() => {
         setMessages((prev) => [...prev, { id: Date.now() + 1, sender: "bestie", text: smartResponse, timestamp: new Date() }]);
         setIsTyping(false);
       }, 800);
     } else {
-      console.log("Using Groq AI for personalized advice");
       const aiResponse = await callGroqAPI(currentInput);
       setMessages((prev) => [...prev, { id: Date.now() + 1, sender: "bestie", text: aiResponse, timestamp: new Date() }]);
       setIsTyping(false);
@@ -360,7 +347,7 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  return (
+  return createPortal(
     <>
       <div className={`bestie-chat-window ${isOpen ? "open" : ""}`}>
         <div className="bestie-header">
@@ -426,7 +413,8 @@ const Bestie = ({ balance = 0, transactions = [], savingGoals = {}, budgetGoals 
         <img src="/bestie-icon.png" alt="Bestie" />
         <span className="bestie-notification-badge">1</span>
       </button>
-    </>
+    </>,
+    document.body
   );
 };
 
