@@ -116,13 +116,13 @@ GROQ_API_KEY=your_groq_api_key
 
 4. Open two terminals and run both together:
 
-Terminal 1 — Backend:
+Terminal 1 - Backend:
 ```bash
 cd src/backend
 node server.js
 ```
 
-Terminal 2 — Frontend:
+Terminal 2 - Frontend:
 ```bash
 npm start
 ```
