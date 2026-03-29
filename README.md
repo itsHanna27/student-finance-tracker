@@ -1,5 +1,5 @@
 # UniBudget
-A full stack personal finance web app designed specifically for university students. Track income, expenses, budgets and saving goals — all in one place.
+A full stack personal finance web app designed specifically for university students. Track income, expenses, budgets and saving goals - all in one place.
 
 ---
 
